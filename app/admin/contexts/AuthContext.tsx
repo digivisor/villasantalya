@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.tsx
 'use client';
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
@@ -20,6 +19,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const { toast } = useToast();
+
+  // API URL'ini çevresel değişkenden al veya varsayılan değeri kullan
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     // Sayfa yüklendiğinde kullanıcı oturumunu kontrol et
@@ -53,65 +55,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth();
   }, []);
 
- const login = async (username: string, password: string): Promise<boolean> => {
-  setIsLoading(true);
-  try {
-    console.log('Login attempt with:', { username });
-    
-    const response = await fetch('http://localhost:5000/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    
-    const data = await response.json();
-    console.log('Response status:', response.status);
-    console.log('Response data:', data);
-    
-    if (!response.ok) {
+  const login = async (username: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      console.log('Login attempt with:', { username });
+      
+      const response = await fetch(`${apiBaseUrl}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      
+      const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
+      
+      if (!response.ok) {
+        toast({
+          title: 'Giriş Başarısız',
+          description: data.message || `Hata kodu: ${response.status}`,
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      if (data.token) {
+        // Kullanıcı bilgilerini kaydet
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+        
+        toast({
+          title: 'Giriş Başarılı',
+          description: `Hoş geldiniz, ${data.user.name}!`,
+          variant: 'success',
+        });
+        
+        return true;
+      } else {
+        toast({
+          title: 'Giriş Başarısız',
+          description: 'Geçersiz yanıt formatı',
+          variant: 'destructive',
+        });
+        return false;
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: 'Giriş Başarısız',
-        description: data.message || `Hata kodu: ${response.status}`,
+        description: error.message || 'Bilinmeyen bir hata oluştu',
         variant: 'destructive',
       });
       return false;
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (data.token) {
-      // Kullanıcı bilgilerini kaydet
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      setUser(data.user);
-      
-      toast({
-        title: 'Giriş Başarılı',
-        description: `Hoş geldiniz, ${data.user.name}!`,
-        variant: 'success',
-      });
-      
-      return true;
-    } else {
-      toast({
-        title: 'Giriş Başarısız',
-        description: 'Geçersiz yanıt formatı',
-        variant: 'destructive',
-      });
-      return false;
-    }
-  } catch (error: any) {
-    console.error('Login error:', error);
-    toast({
-      title: 'Giriş Başarısız',
-      description: error.message || 'Bilinmeyen bir hata oluştu',
-      variant: 'destructive',
-    });
-    return false;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
+
   const logout = () => {
     authService.logout();
     setUser(null);
