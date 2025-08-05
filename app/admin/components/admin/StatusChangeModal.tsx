@@ -2,6 +2,7 @@
 
 import Modal from '../ui/Modal';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { Property } from '../../types/property';
 
 type StatusChangeModalProps = {
   isOpen: boolean;

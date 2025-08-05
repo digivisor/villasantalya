@@ -1,66 +1,62 @@
-// C:\Users\VICTUS\Desktop\villasantalya\backend\src\routes\agent.routes.js
+// agent.routes.js
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { 
-  getAllAgents, 
-  getAgentById, 
-  createAgent, 
-  updateAgent, 
-  deleteAgent,
-  getAgentProperties,
-  getFeaturedAgents,
-  updateProfile
-} = require('../controllers/agent.controller');
-const authMiddleware = require('../middleware/auth.middleware');
-const adminMiddleware = require('../middleware/admin.middleware');
-
 const router = express.Router();
+const agentController = require('../controllers/agent.controller');
+const authMiddleware = require('../middleware/auth.middleware');
+const upload = require('../middleware/upload.middleware');
 
-// Uploads dizinini oluştur
-const uploadDir = path.join(__dirname, '../../uploads/agents');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Dosya yükleme konfigürasyonu
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
+// Önce profil rotalarını tanımlayın
+router.get('/profile', authMiddleware.verifyToken, (req, res) => {
+  console.log('Profile route called with userId:', req.userId);
+  agentController.getProfile(req, res);
 });
 
-const upload = multer({ 
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|webp/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    
-    cb(new Error('Sadece resim dosyaları yüklenebilir'));
-  }
+// agent.routes.js'de
+router.put('/profile', authMiddleware.verifyToken, upload.single('image'), (req, res) => {
+  // Burada updateAgentProfile yerine updateProfile kullanmanız gerekebilir
+  agentController.updateProfile(req, res);
+});
+router.put('/profile/password', authMiddleware.verifyToken, (req, res) => {
+  agentController.updatePassword(req, res);
 });
 
-// Public routes
-router.get('/', getAllAgents);
-router.get('/featured', getFeaturedAgents);
-router.get('/:id', getAgentById);
-router.get('/:id/properties', getAgentProperties);
+// Test endpoint
+router.get('/test', (req, res) => {
+  res.json({ message: 'Agent routes test successful!' });
+});
 
-// Protected routes
-router.post('/', [authMiddleware, adminMiddleware], upload.single('image'), createAgent);
-router.put('/:id', authMiddleware, upload.single('image'), updateAgent);
-router.delete('/:id', [authMiddleware, adminMiddleware], deleteAgent);
-router.put('/profile/me', authMiddleware, upload.single('image'), updateProfile);
+// Diğer tüm rotalar
+router.get('/', (req, res) => {
+  agentController.getAllAgents(req, res);
+});
+
+// ID parametresi içeren rotalar en sonda olmalı
+router.get('/:id', (req, res) => {
+  agentController.getAgentById(req, res);
+});
+
+router.put('/:id', authMiddleware.verifyToken, upload.single('image'), (req, res) => {
+  agentController.updateAgent(req, res);
+});
+
+router.delete('/:id', authMiddleware.verifyToken, authMiddleware.isAdmin, (req, res) => {
+  agentController.deleteAgent(req, res);
+});
+
+router.get('/:id/teams', authMiddleware.verifyToken, (req, res) => {
+  agentController.getAgentTeams(req, res);
+});
+
+router.get('/:id/properties', (req, res) => {
+  agentController.getAgentProperties(req, res);
+});
+
+router.patch('/:id/toggle-active', authMiddleware.verifyToken, authMiddleware.isAdmin, (req, res) => {
+  agentController.toggleAgentActive(req, res);
+});
+
+router.post('/register', (req, res) => {
+  agentController.createAgent(req, res);
+});
 
 module.exports = router;

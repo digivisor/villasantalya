@@ -1,101 +1,101 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+  const mongoose = require('mongoose');
+  const bcrypt = require('bcryptjs');
 
-const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  title: {
-    type: String,
-    default: 'Emlak Danışmanı',
-  },
-  phone: {
-    type: String,
-  },
-  image: {
-    type: String,
-    default: '/uploads/default-agent.jpg',
-  },
-  about: {
-    type: String,
-  },
-  company: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Company',
-  },
-  rating: {
-    type: Number,
-    default: 5.0,
-    min: 0,
-    max: 5,
-  },
-  experience: {
-    type: Number,
-    default: 0,
-  },
-  languages: [{
-    type: String,
-  }],
-  regions: [{
-    type: String,
-  }],
-  specialties: [{
-    type: String,
-  }],
-  social: {
-    facebook: String,
-    twitter: String,
-    instagram: String,
-    linkedin: String,
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
-}, { 
-  timestamps: true 
-});
+  const UserSchema = new mongoose.Schema({
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      default: 'Emlak Danışmanı',
+    },
+    phone: {
+      type: String,
+    },
+    image: {
+      type: String,
+      default: '/uploads/default-agent.jpg',
+    },
+    about: {
+      type: String,
+    },
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company',
+    },
+    rating: {
+      type: Number,
+      default: 5.0,
+      min: 0,
+      max: 5,
+    },
+    experience: {
+      type: Number,
+      default: 0,
+    },
+    languages: [{
+      type: String,
+    }],
+    regions: [{
+      type: String,
+    }],
+    specialties: [{
+      type: String,
+    }],
+    social: {
+      facebook: String,
+      twitter: String,
+      instagram: String,
+      linkedin: String,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+  }, { 
+    timestamps: true 
+  });
 
-// Hash şifre kaydetmeden önce
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+  // Hash şifre kaydetmeden önce
+  UserSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
 
-// Şifre doğrulama metodu
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
+  // Şifre doğrulama metodu
+  UserSchema.methods.comparePassword = async function(candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+  };
 
-module.exports = mongoose.model('User', UserSchema);
+  module.exports = mongoose.model('User', UserSchema);

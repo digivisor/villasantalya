@@ -1,14 +1,10 @@
+// src/app/login/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-
-// Demo kullanıcılar
-const USERS = [
-  { username: 'admin', password: 'admin123', isAdmin: true },
-  { username: 'fazilcanakbas', password: 'admin123', isAdmin: false }
-];
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -17,29 +13,18 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
+  const { login, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Sayfa yüklendiğinde localStorage'dan kullanıcı kontrolü yap
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
+    if (user) {
       if (user.isAdmin) {
         router.push('/admin/dashboard/admin');
       } else {
         router.push('/admin/dashboard/consultant');
       }
     }
-  }, [router]);
-
-  const handleLogin = async (username: string, password: string) => {
-    // Kullanıcıları kontrol et
-    const user = USERS.find(
-      user => user.username === username && user.password === password
-    );
-    
-    return user || null;
-  };
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,22 +32,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Bir saniye bekleyerek gerçek bir API çağrısı simülasyonu yapın
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const user = await handleLogin(username, password);
-      
-      if (user) {
-        // Kullanıcı bilgilerini localStorage'da sakla
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // Kullanıcı tipine göre yönlendirme yap
-        if (user.isAdmin) {
-          router.push('/admin/dashboard/admin');
-        } else {
-          router.push('/admin/dashboard/consultant');
-        }
-      } else {
+      const success = await login(username, password);
+      if (!success) {
         setError('Kullanıcı adı veya şifre hatalı');
       }
     } catch (err) {
@@ -150,10 +121,10 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || authLoading}
               className="w-full bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-green-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
             >
-              {isLoading ? (
+              {isLoading || authLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Giriş yapılıyor...

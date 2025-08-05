@@ -19,14 +19,22 @@ import Toast from '../../../components/ui/toast';
 import PropertyApprovalModal from '../../../components/admin/PropertyApprovalModal';
 import PropertyRejectModal from '../../../components/admin/PropertyRejectModal';
 import PropertyDetailsModal from '../../../components/admin/PropertyDetailModal';
-import { PendingProperty } from '../../../types/property';
+import { Property } from '../../../types/property';
+import api from '../../../../services/api';
+import propertyService from '../../../../services/property.service';
+
+// Pending Property type (eğer farklı alanlar gerekiyorsa)
+interface PendingProperty extends Property {
+  submittedAt?: string;
+  notes?: string;
+}
 
 export default function PendingPropertiesPage() {
   const [pendingProperties, setPendingProperties] = useState<PendingProperty[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterConsultant, setFilterConsultant] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [consultants, setConsultants] = useState<string[]>([]);
+  const [consultants, setConsultants] = useState<{id: string, name: string}[]>([]);
   
   // Modal states
   const [selectedProperty, setSelectedProperty] = useState<PendingProperty | null>(null);
@@ -44,102 +52,82 @@ export default function PendingPropertiesPage() {
   const router = useRouter();
   
   useEffect(() => {
-    // Mock data loading
-    setIsLoading(true);
-    setTimeout(() => {
-      const mockData: PendingProperty[] = [
-        {
-          id: 101,
-          title: 'Deniz Manzaralı 2+1 Daire',
-          price: 1850000,
-          location: 'Konyaaltı, Antalya',
-          consultant: 'Mehmet Aydın',
-          consultantAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-          status: 'İncelemede',
-          type: 'Satılık',
-          submittedAt: '2025-08-01T08:30:00Z',
-          image: 'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg',
-          description: 'Konyaaltı sahilinde deniz manzaralı, yeni yapılmış lüks daire. Site içerisinde, havuzlu, spor salonlu ve güvenlikli.',
-          features: ['2+1', '110m²', 'Deniz Manzaralı', 'Havuzlu', 'Güvenlikli'],
-          notes: 'Danışman, müşterinin hızlı satış istediğini belirtti.'
-        },
-        {
-          id: 102,
-          title: 'Merkezi Konumda 3+1 Daire',
-          price: 2250000,
-          location: 'Muratpaşa, Antalya',
-          consultant: 'Ayşe Demir',
-          consultantAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-          status: 'İncelemede',
-          type: 'Satılık',
-          submittedAt: '2025-07-31T15:45:00Z',
-          image: 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg',
-          description: 'Şehir merkezinde, toplu taşımaya yakın, yeni yapılmış 3+1 daire. Okullara, hastanelere ve alışveriş merkezlerine yürüme mesafesinde.',
-          features: ['3+1', '145m²', 'Merkezi Konum', 'Asansörlü', 'Otoparklı'],
-          notes: ''
-        },
-        {
-          id: 103,
-          title: 'Lüks Villa Lara',
-          price: 5500000,
-          location: 'Lara, Antalya',
-          consultant: 'Ali Yıldız',
-          consultantAvatar: 'https://randomuser.me/api/portraits/men/67.jpg',
-          status: 'İncelemede',
-          type: 'Satılık',
-          submittedAt: '2025-07-30T11:20:00Z',
-          image: 'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg',
-          description: 'Lara bölgesinde müstakil bahçeli, özel havuzlu, 4+1 lüks villa. Denize 1km mesafede, tam donanımlı.',
-          features: ['4+1', '250m²', 'Müstakil', 'Özel Havuz', '500m² Bahçe'],
-          notes: 'Müşteri taksit imkanı sunuyor.'
-        },
-        {
-          id: 104,
-          title: 'Yatırımlık 1+1 Daire',
-          price: 890000,
-          location: 'Kepez, Antalya',
-          consultant: 'Mehmet Aydın',
-          consultantAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-          status: 'İncelemede',
-          type: 'Satılık',
-          submittedAt: '2025-07-29T09:15:00Z',
-          image: 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg',
-          description: 'Üniversiteye yakın konumda, yatırım amaçlı ideal 1+1 daire. Yeni yapılmış, eşyalı olarak satılıktır.',
-          features: ['1+1', '55m²', 'Eşyalı', 'Üniversiteye Yakın'],
-          notes: 'Kiracı mevcut, aylık 3500₺ kira getirisi var.'
-        },
-        {
-          id: 105,
-          title: 'Kiralık Ofis Merkez',
-          price: 8500,
-          location: 'Muratpaşa, Antalya',
-          consultant: 'Ayşe Demir',
-          consultantAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-          status: 'İncelemede',
-          type: 'Kiralık',
-          submittedAt: '2025-07-28T14:30:00Z',
-          image: 'https://images.pexels.com/photos/267507/pexels-photo-267507.jpeg',
-          description: 'Şehir merkezinde, iş hanında 120m² ofis. Asansörlü binada, otoparklı, güvenlikli.',
-          features: ['120m²', 'Asansörlü', 'Güvenlikli', 'Otoparklı'],
-          notes: 'Minimum 2 yıl kira sözleşmesi istiyor.'
-        }
-      ];
-
-      // Danışmanları çıkar
-      const uniqueConsultants = Array.from(new Set(mockData.map(p => p.consultant)));
-      setConsultants(uniqueConsultants);
-      
-      setPendingProperties(mockData);
-      setIsLoading(false);
-    }, 1000);
+    fetchPendingProperties();
   }, []);
 
+  const fetchPendingProperties = async () => {
+    setIsLoading(true);
+    try {
+      const data = await propertyService.getPendingProperties();
+      
+      if (data && data.properties) {
+        setPendingProperties(data.properties);
+        
+        // Danışmanları topla
+        const uniqueAgents = Array.from(
+          new Map(
+            data.properties.map((p: { agent: { _id: any; name: any; }; }) => p.agent ? [p.agent._id, {id: p.agent._id, name: p.agent.name}] : ['unknown', {id: 'unknown', name: 'Bilinmeyen'}])
+          ).values()
+        );
+        
+        setConsultants(uniqueAgents as {id: string, name: string}[]);
+      }
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching pending properties:', error);
+      showToast('Bekleyen ilanlar yüklenirken bir hata oluştu.', 'error');
+      setIsLoading(false);
+      
+      // Hata durumunda boş array ile devam et
+      setPendingProperties([]);
+      setConsultants([]);
+    }
+  };
+  
+  // Onaylama işlemi
+  const confirmApproveProperty = async () => {
+    if (selectedProperty) {
+      try {
+        await propertyService.approveProperty(selectedProperty._id);
+        
+        setPendingProperties(pendingProperties.filter(p => p._id !== selectedProperty._id));
+        setIsApproveModalOpen(false);
+        showToast('İlan başarıyla onaylandı ve yayınlandı.', 'success');
+      } catch (error) {
+        console.error('Error approving property:', error);
+        showToast('İlan onaylanırken bir hata oluştu.', 'error');
+      }
+    }
+  };
+  
+  // Reddetme işlemi
+  const confirmRejectProperty = async (reason: string) => {
+    if (selectedProperty) {
+      try {
+        await propertyService.rejectProperty(selectedProperty._id, reason);
+        
+        setPendingProperties(pendingProperties.filter(p => p._id !== selectedProperty._id));
+        setIsRejectModalOpen(false);
+        showToast('İlan reddedildi ve danışmana bildirildi.', 'info');
+      } catch (error) {
+        console.error('Error rejecting property:', error);
+        showToast('İlan reddedilirken bir hata oluştu.', 'error');
+      }
+    }
+  };
+  
+
+  // Filtreleme
   const filteredProperties = pendingProperties.filter(property => {
-    const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      (property.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+      (property.district && property.city && 
+        `${property.district}, ${property.city}`.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesConsultant = filterConsultant === 'all' || 
-                             property.consultant === filterConsultant;
+    const matchesConsultant = 
+      filterConsultant === 'all' || 
+      (property.agent && property.agent._id === filterConsultant);
     
     return matchesSearch && matchesConsultant;
   });
@@ -160,23 +148,8 @@ export default function PendingPropertiesPage() {
     setIsRejectModalOpen(true);
   };
   
-  const confirmApproveProperty = () => {
-    if (selectedProperty) {
-      // Gerçek uygulamada burada API çağrısı yapılacaktır
-      setPendingProperties(pendingProperties.filter(p => p.id !== selectedProperty.id));
-      setIsApproveModalOpen(false);
-      showToast('İlan başarıyla onaylandı ve yayınlandı.', 'success');
-    }
-  };
+  // Onaylama işlemi
   
-  const confirmRejectProperty = (reason: string) => {
-    if (selectedProperty) {
-      // Gerçek uygulamada burada API çağrısı yapılacaktır
-      setPendingProperties(pendingProperties.filter(p => p.id !== selectedProperty.id));
-      setIsRejectModalOpen(false);
-      showToast('İlan reddedildi ve danışmana bildirildi.', 'info');
-    }
-  };
   
   // Toast gösterme işlevi
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
@@ -187,8 +160,20 @@ export default function PendingPropertiesPage() {
     });
   };
 
+  // API URL'si
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  
+  // Resim URL'sini formatlama
+  const formatImageUrl = (imagePath?: string) => {
+    if (!imagePath) return "/placeholder.svg";
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${apiBaseUrl.replace('/api', '')}${imagePath}`;
+  };
+
   // İlanın incelemede olduğu süreyi hesaplama
-  const getTimeAgo = (dateString: string) => {
+  const getTimeAgo = (dateString?: string) => {
+    if (!dateString) return "Bilinmiyor";
+    
     const now = new Date();
     const submittedDate = new Date(dateString);
     const diffInHours = Math.floor((now.getTime() - submittedDate.getTime()) / (1000 * 60 * 60));
@@ -203,6 +188,12 @@ export default function PendingPropertiesPage() {
       return `${diffInDays} gün önce`;
     }
   };
+
+  // Para birimi ile fiyat formatla
+  const formatPrice = (price?: number, currency?: string) => {
+    if (!price) return "Belirtilmemiş";
+    return `${price.toLocaleString()} ${currency || '₺'}`;
+  }
 
   if (isLoading) {
     return (
@@ -237,7 +228,8 @@ export default function PendingPropertiesPage() {
           </div>
           <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="text-2xl font-bold text-green-600">
-              {pendingProperties.filter(p => new Date(p.submittedAt).toDateString() === new Date().toDateString()).length}
+              {pendingProperties.filter(p => 
+                p.createdAt && new Date(p.createdAt).toDateString() === new Date().toDateString()).length}
             </div>
             <div className="text-sm text-gray-600">Bugün Gelen İlan</div>
           </div>
@@ -266,7 +258,7 @@ export default function PendingPropertiesPage() {
                 >
                   <option value="all">Tüm Danışmanlar</option>
                   {consultants.map((consultant, index) => (
-                    <option key={index} value={consultant}>{consultant}</option>
+                    <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
                   ))}
                 </select>
               </div>
@@ -277,12 +269,12 @@ export default function PendingPropertiesPage() {
         {/* Properties List */}
         <div className="space-y-4">
           {filteredProperties.map((property) => (
-            <div key={property.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+            <div key={property._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
               <div className="flex flex-col md:flex-row">
                 {/* İlan Görseli */}
                 <div className="md:w-64 h-48 md:h-auto">
                   <img
-                    src={property.image}
+                    src={formatImageUrl(property.mainImage)}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
@@ -296,45 +288,84 @@ export default function PendingPropertiesPage() {
                       
                       <div className="flex items-center text-gray-600 mb-2">
                         <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{property.location}</span>
+                        <span className="text-sm">
+                          {property.district && property.city 
+                            ? `${property.district}, ${property.city}`
+                            : property.address || 'Konum belirtilmedi'}
+                        </span>
                       </div>
                       
                       <div className="flex items-center mb-4">
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 mr-2">
-                          {property.type}
+                          {property.status === 'sale' ? 'Satılık' : 'Kiralık'}
                         </span>
                         <span className="text-lg font-bold text-blue-600">
-                          ₺{property.price.toLocaleString()}
-                          {property.type === 'Kiralık' && <span className="text-sm text-gray-500">/ay</span>}
+                          {formatPrice(property.price, property.currency)}
+                          {property.status === 'rent' && <span className="text-sm text-gray-500">/ay</span>}
                         </span>
                       </div>
                       
                       <div className="flex items-start space-x-3 mb-4">
-                        <img 
-                          src={property.consultantAvatar} 
-                          alt={property.consultant} 
-                          className="w-8 h-8 rounded-full"
-                        />
-                        <div>
-                          <p className="text-sm font-medium">{property.consultant}</p>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Clock className="h-3 w-3 mr-1" />
-                            <span>
-                              {getTimeAgo(property.submittedAt)} gönderildi
-                            </span>
-                          </div>
-                        </div>
+                        {property.agent && (
+                          <>
+                            <img 
+                              src={formatImageUrl(property.agent.image)}
+                              alt={property.agent.name} 
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                              <p className="text-sm font-medium">{property.agent.name}</p>
+                              <div className="flex items-center text-xs text-gray-500">
+                                <Clock className="h-3 w-3 mr-1" />
+                                <span>
+                                  {getTimeAgo(property.createdAt)} gönderildi
+                                </span>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                     
                     {/* Özellikler */}
                     <div className="mt-4 md:mt-0">
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {property.features.map((feature, index) => (
-                          <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                            {feature}
+                        {property.propertyType && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            {property.propertyType}
                           </span>
-                        ))}
+                        )}
+                        {property.area && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            {property.area} m²
+                          </span>
+                        )}
+                        {property.bedrooms && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            {property.bedrooms}
+                          </span>
+                        )}
+                        {property.bathrooms && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            {property.bathrooms} Banyo
+                          </span>
+                        )}
+                        {/* Diğer özellikler, örn. furnished, balcony, vs. */}
+                        {property.furnished && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            Eşyalı
+                          </span>
+                        )}
+                        {property.balcony && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            Balkon
+                          </span>
+                        )}
+                        {property.parking && (
+                          <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                            Otopark
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

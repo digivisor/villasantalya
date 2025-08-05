@@ -1,25 +1,27 @@
 "use client"
 import { useEffect, useRef } from "react"
 
-interface Property {
-  id: number
-  name: string
-  address: string
-  lat: number
-  lng: number
-  area: string
-  beds: string
-  baths: string
+interface MapProperty {
+  id: string;
+  name: string;
+  address: string;
+  area: string;
+  beds: string;
+  baths: string;
+  image: string;
+  lat: number;
+  lng: number;
+  slug?: string;
 }
 
 interface GoogleMapProps {
-  properties: Property[]
+  properties: MapProperty[]
 }
 
 declare global {
   interface Window {
     google: any
-    initMap: () => void
+    initMap?: () => void
   }
 }
 

@@ -1,4 +1,5 @@
 "use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   MapPin,
@@ -14,10 +15,13 @@ import {
   Target,
   Users,
   PhoneCall,
+  Menu,
+  X
 } from "lucide-react"
 import Image from "next/image"
 import ScrollToTop from "@/components/scroll-to-top"
 import Footer from "@/components/footer"
+import Link from "next/link"
 
 const requirements = [
   {
@@ -128,7 +132,7 @@ const processSteps = [
 
 const stats = [
   {
-    number: "78K",
+    number: "78B",
     label: "Memnun Müşteri",
     description: "Başarıyla tamamlanan işlemler",
   },
@@ -145,12 +149,18 @@ const stats = [
 ]
 
 export default function AboutPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Top Bar */}
       <div className="bg-gray-800/90 text-white text-sm py-2 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6 mb-2 sm:mb-0">
             <div className="flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-orange-500" />
               <span>Lara, Muratpaşa Antalya</span>
@@ -160,7 +170,7 @@ export default function AboutPage() {
               <span>+90 551 389 52 55</span>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-orange-500" />
               <span>Pzt to Cmt - 09:00 to 21:00</span>
@@ -188,44 +198,76 @@ export default function AboutPage() {
             />
           </div>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="/" className="hover:text-orange-500 transition-colors">
+            <Link href="/" className="hover:text-orange-500 transition-colors">
               Anasayfa
-            </a>
-            <a href="/about" className="text-orange-500 hover:text-orange-400 font-medium">
+            </Link>
+            <Link href="/about" className="text-orange-500 hover:text-orange-400 font-medium">
               Hakkımızda
-            </a>
-            <a href="#" className="hover:text-orange-500 transition-colors">
+            </Link>
+            <Link href="/properties" className="hover:text-orange-500 transition-colors">
               Emlak Listesi
-            </a>
-            <a href="#" className="hover:text-orange-500 transition-colors">
+            </Link>
+            <Link href="/blog" className="hover:text-orange-500 transition-colors">
               Blog
-            </a>
-            <a href="#" className="hover:text-orange-500 transition-colors">
+            </Link>
+            <Link href="/contact" className="hover:text-orange-500 transition-colors">
               İletişim
-            </a>
+            </Link>
           </nav>
 
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">
-            Giriş Yap / Kayıt Ol
-          </Button>
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-white focus:outline-none" 
+            onClick={toggleMobileMenu}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <nav className="md:hidden bg-gray-800 py-4 px-4 mt-2 rounded-lg">
+            <div className="flex flex-col space-y-3">
+              <Link href="/" className="text-white hover:text-orange-500 transition-colors py-2">
+                Anasayfa
+              </Link>
+              <Link href="/about" className="text-orange-500 hover:text-orange-400 font-medium py-2">
+                Hakkımızda
+              </Link>
+              <Link href="/properties" className="text-white hover:text-orange-500 transition-colors py-2">
+                Emlak Listesi
+              </Link>
+              <Link href="/blog" className="text-white hover:text-orange-500 transition-colors py-2">
+                Blog
+              </Link>
+              <Link href="/contact" className="text-white hover:text-orange-500 transition-colors py-2">
+                İletişim
+              </Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-96 overflow-hidden">
-        <Image src="/about-hero-bg.jpg" alt="About Us Hero" fill className="object-cover" />
+      <section className="relative h-72 md:h-96 overflow-hidden">
+        <Image src="/about-hero-bg.jpg" alt="Hakkımızda" fill className="object-cover" />
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="absolute inset-0 flex items-center">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <div className="text-white">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4">About Us</h1>
-              <div className="flex items-center space-x-2 text-lg">
-                <a href="/" className="hover:text-orange-500 transition-colors">
-                  Home
-                </a>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Hakkımızda</h1>
+              <div className="flex items-center space-x-2 text-base md:text-lg">
+                <Link href="/" className="hover:text-orange-500 transition-colors">
+                  Anasayfa
+                </Link>
                 <span>-</span>
-                <span className="text-orange-500">About Us</span>
+                <span className="text-orange-500">Hakkımızda</span>
               </div>
             </div>
           </div>
@@ -233,13 +275,13 @@ export default function AboutPage() {
       </section>
 
       {/* Requirements Section */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-12 md:py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8">Mülkiyet Gereksinimi</h2>
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 md:mb-8">Mülkiyet Gereksinimi</h2>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
             {requirements.map((requirement, index) => (
               <div key={index} className="text-center group cursor-pointer">
                 <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300 group-hover:bg-orange-50">
@@ -258,9 +300,9 @@ export default function AboutPage() {
       </section>
 
       {/* Process Section */}
-      <section className="py-16 px-4 bg-white">
+      <section className="py-12 md:py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12 md:mb-16">
             <div className="text-orange-500 text-sm font-semibold mb-4 tracking-wider uppercase">SÜRECİMİZ</div>
 
             {/* Desktop Title */}
@@ -269,7 +311,7 @@ export default function AboutPage() {
               <span className="inline-block relative mx-2">
                 <Image
                   src="/villa-showcase-1.jpg"
-                  alt="Luxury Villa"
+                  alt="Lüks Villa"
                   width={80}
                   height={35}
                   className="rounded-2xl shadow-lg"
@@ -282,7 +324,7 @@ export default function AboutPage() {
                 <div className="relative">
                   <Image
                     src="/villa-showcase-2.png"
-                    alt="Villa Interior"
+                    alt="Villa İç Mekan"
                     width={80}
                     height={30}
                     className="rounded-xl shadow-lg"
@@ -306,7 +348,7 @@ export default function AboutPage() {
 
             {/* Mobile Title */}
             <div className="block md:hidden">
-              <h2 className="text-3xl font-bold text-gray-900 leading-tight mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-6">
                 Tüm Ayrıcalıklarıyla Lüks Mülklerimize Hoş Geldiniz
               </h2>
 
@@ -314,14 +356,14 @@ export default function AboutPage() {
               <div className="flex justify-center items-center gap-4 mb-6">
                 <Image
                   src="/villa-showcase-1.jpg"
-                  alt="Luxury Villa"
+                  alt="Lüks Villa"
                   width={60}
                   height={40}
                   className="rounded-xl shadow-lg"
                 />
                 <Image
                   src="/villa-showcase-2.png"
-                  alt="Villa Interior"
+                  alt="Villa İç Mekan"
                   width={60}
                   height={40}
                   className="rounded-xl shadow-lg"
@@ -349,28 +391,28 @@ export default function AboutPage() {
             {/* Timeline Line */}
             <div className="absolute top-8 left-0 right-0 h-1 bg-orange-500 hidden lg:block"></div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
               {processSteps.map((step, index) => (
                 <div key={index} className="relative group">
                   {/* Timeline Dot */}
                   <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-orange-500 rounded-full border-4 border-white shadow-lg hidden lg:block group-hover:scale-125 transition-transform duration-300"></div>
 
-                  <div className="text-center pt-16 lg:pt-20">
+                  <div className="text-center pt-12 lg:pt-20">
                     <div className="text-orange-500 text-sm font-semibold mb-4 tracking-wider">{step.step}</div>
 
-                    <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-500 group-hover:scale-110 transition-all duration-300 cursor-pointer">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-500 group-hover:scale-110 transition-all duration-300 cursor-pointer">
                       <div className="text-orange-500 group-hover:text-white transition-colors duration-300">
                         {step.icon}
                       </div>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors duration-300">
+                    <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors duration-300">
                       {step.title}
                     </h3>
 
-                    {/* Description only on hover */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-4">
-                      <p className="text-sm text-gray-600 leading-relaxed px-2 bg-white rounded-lg p-3 shadow-lg border-l-4 border-orange-500">
+                    {/* Description only on hover or for mobile always visible */}
+                    <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 mt-4">
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed px-2 bg-white rounded-lg p-3 shadow-lg border-l-4 border-orange-500">
                         {step.description}
                       </p>
                     </div>
@@ -383,23 +425,20 @@ export default function AboutPage() {
       </section>
 
       {/* Villa Showcase Section */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-12 md:py-16 px-4 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Villa Image */}
             <div className="relative order-2 lg:order-1">
               <div className="relative h-64 md:h-80 lg:h-[500px] rounded-3xl overflow-hidden">
-                <Image src="/about-villa-image.jpg" alt="Luxury Villa" fill className="object-cover" />
+                <Image src="/about-villa-image.jpg" alt="Lüks Villa" fill className="object-cover" />
 
                 {/* Decorative Shapes - Responsive */}
                 <div className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-16 h-20 md:w-24 md:h-32 bg-blue-200 rounded-[1.5rem] md:rounded-[2rem] opacity-60"></div>
                 <div className="absolute -bottom-3 -right-3 md:-bottom-6 md:-right-6 w-12 h-12 md:w-20 md:h-20 bg-blue-300 rounded-full opacity-60"></div>
               </div>
 
-              {/* Size Label - Responsive */}
-              <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 bg-gray-800/80 text-white px-2 py-1 md:px-4 md:py-2 rounded-lg">
-                <span className="text-sm md:text-xl font-bold">1536 × 1240</span>
-              </div>
+        
 
               {/* Team Avatars - Responsive */}
               <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-gray-800/80 rounded-full p-2 md:p-3 flex items-center space-x-2">
@@ -440,16 +479,18 @@ export default function AboutPage() {
 
               {/* Action Buttons - Responsive */}
               <div className="flex flex-col gap-4">
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                  Emlakları Keşfedin
-                </Button>
+                <Link href="/properties">
+                  <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                    Emlakları Keşfedin
+                  </Button>
+                </Link>
 
                 <div className="flex items-center space-x-3 md:space-x-4 bg-gray-900 hover:bg-gray-800 text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
                   <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center">
                     <PhoneCall className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold">Call Us Anytime</div>
+                    <div className="text-sm font-semibold">Bizi Arayın</div>
                     <div className="text-sm text-orange-400 font-semibold">+90 551 389 52 55</div>
                   </div>
                 </div>

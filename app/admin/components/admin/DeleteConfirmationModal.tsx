@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from 'lucide-react';
 import Modal from '../ui/Modal';
+import { Property } from '../../types/property';
 
 type DeleteConfirmationModalProps = {
   isOpen: boolean;

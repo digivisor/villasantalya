@@ -46,34 +46,25 @@ exports.register = async (req, res) => {
 // Kullanıcı girişi
 exports.login = async (req, res) => {
   try {
-    console.log('====== LOGIN ATTEMPT ======');
-    console.log('Request body:', req.body);
-    console.log('Headers:', req.headers);
-    
     const { username, password } = req.body;
-    
-    if (!username || !password) {
-      console.log('Missing username or password');
-      return res.status(400).json({
-        message: 'Kullanıcı adı ve şifre gereklidir'
-      });
-    }
     
     // Kullanıcıyı bul
     const user = await User.findOne({ username });
-    console.log('User lookup result:', user ? `Found: ${user.username}` : 'Not found');
-    
     if (!user) {
       return res.status(401).json({
         message: 'Geçersiz kullanıcı adı veya şifre'
       });
     }
     
-    // Şifre kontrolü
-    console.log('Comparing password...');
-    const isMatch = await user.comparePassword(password);
-    console.log('Password match result:', isMatch);
+    // Aktif kullanıcı kontrolü
+    if (!user.isActive) {
+      return res.status(401).json({
+        message: 'Hesabınız aktif değil'
+      });
+    }
     
+    // Şifre kontrolü
+    const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
         message: 'Geçersiz kullanıcı adı veya şifre'
@@ -81,14 +72,11 @@ exports.login = async (req, res) => {
     }
     
     // JWT token oluştur
-    console.log('Creating JWT token');
     const token = jwt.sign(
       { id: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET || 'fallback_secret_key',
+      process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
-    
-    console.log('Login successful, sending response');
     
     res.status(200).json({
       message: 'Giriş başarılı',
@@ -103,7 +91,6 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({
       message: 'Giriş işlemi başarısız',
       error: error.message

@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { MapPin, Phone, Clock, Facebook, Twitter, Youtube, Instagram, Home, Users, Star } from "lucide-react"
+import { MapPin, Phone, Clock, Facebook, Twitter, Youtube, Instagram, Home, Users, Star, Menu, X } from "lucide-react"
 import Image from "next/image"
 import LuxuryVillasSection from "@/components/luxury-villas-section"
 import PropertySearchSection from "@/components/property-search-section"
@@ -14,6 +14,7 @@ import ScrollToTop from "@/components/scroll-to-top"
 
 export default function VillaWebsite() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -23,12 +24,16 @@ export default function VillaWebsite() {
     return () => clearInterval(timer)
   }, [])
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Top Bar */}
       <div className="bg-gray-800/90 text-white text-sm py-2 px-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6 mb-2 sm:mb-0">
             <div className="flex items-center space-x-2">
               <MapPin className="w-4 h-4 text-orange-500" />
               <span>Lara, Muratpaşa Antalya</span>
@@ -38,7 +43,7 @@ export default function VillaWebsite() {
               <span>+90 551 389 52 55</span>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-orange-500" />
               <span>Pzt to Cmt - 09:00 to 21:00</span>
@@ -67,6 +72,7 @@ export default function VillaWebsite() {
             />
           </div>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#" className="text-orange-500 hover:text-orange-400 font-medium">
               Anasayfa
@@ -85,14 +91,45 @@ export default function VillaWebsite() {
             </a>
           </nav>
 
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">
-            Giriş Yap / Kayıt Ol
-          </Button>
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-white focus:outline-none" 
+            onClick={toggleMobileMenu}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
+        
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <nav className="md:hidden bg-gray-800 py-4 px-4 mt-2 rounded-lg">
+            <div className="flex flex-col space-y-3">
+              <a href="#" className="text-orange-500 hover:text-orange-400 font-medium py-2">
+                Anasayfa
+              </a>
+              <a href="about" className="text-white hover:text-orange-500 transition-colors py-2">
+                Hakkımızda
+              </a>
+              <a href="properties" className="text-white hover:text-orange-500 transition-colors py-2">
+                Emlak Listesi
+              </a>
+              <a href="blog" className="text-white hover:text-orange-500 transition-colors py-2">
+                Blog
+              </a>
+              <a href="contact" className="text-white hover:text-orange-500 transition-colors py-2">
+                İletişim
+              </a>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero Slider Section */}
-      <div className="relative h-screen overflow-hidden">
+      <div className="relative h-[70vh] md:h-screen overflow-hidden">
         {/* Slider Images */}
         <div className="relative w-full h-full">
           {[
@@ -139,21 +176,21 @@ export default function VillaWebsite() {
         <div className="absolute inset-0 flex items-center z-10">
           <div className="max-w-7xl mx-auto px-4 w-full">
             <div className="max-w-2xl">
-              <div className="text-orange-500 text-sm font-semibold mb-6 tracking-widest uppercase animate-fade-in-up">
+              <div className="text-orange-500 text-sm font-semibold mb-4 md:mb-6 tracking-widest uppercase animate-fade-in-up">
                 EN GÜVENİLİR
               </div>
-              <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-8 max-w-4xl animate-fade-in-up animation-delay-200">
+              <h1 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 md:mb-8 max-w-4xl animate-fade-in-up animation-delay-200">
                 Ev, Daire ve Villa Satışı veya Kiralaması İçin Mükemmel Firma
               </h1>
 
-              <div className="flex flex-wrap gap-6 lg:gap-8 text-white mt-12 animate-fade-in-up animation-delay-400">
+              <div className="flex flex-wrap gap-4 lg:gap-8 text-white mt-8 md:mt-12 animate-fade-in-up animation-delay-400">
                 <div className="flex items-center space-x-2">
                   <Home className="w-5 h-5 text-orange-500" />
-                  <span className="text-base font-medium">2 Milyondan Fazla Emlak.</span>
+                  <span className="text-sm md:text-base font-medium">2 Milyondan Fazla Emlak.</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Users className="w-5 h-5 text-orange-500" />
-                  <span className="text-base font-medium">46.789 Memnun Müşteri</span>
+                  <span className="text-sm md:text-base font-medium">46.789 Memnun Müşteri</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center space-x-1">
@@ -161,7 +198,7 @@ export default function VillaWebsite() {
                       <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <span className="text-base font-medium">4,8 — En Yüksek Puan</span>
+                  <span className="text-sm md:text-base font-medium">4,8 — En Yüksek Puan</span>
                 </div>
               </div>
             </div>
