@@ -546,13 +546,8 @@
                         {/* Property Image */}
                         <div className="relative h-52 overflow-hidden">
                           <Image
-                            src={
-                              property.mainImage
-                                ? property.mainImage.startsWith('http')
-                                  ? property.mainImage
-                                  : `${apiBaseUrl}${property.mainImage}`
-                                : "/placeholder.svg"
-                            }
+                            src={`https://api.villasantalya.com${property.mainImage}`
+                            || "/placeholder-image.jpg"}  
                             alt={property.title}
                             fill
                             className="object-cover group-hover:scale-105 transition-transform duration-300"
