@@ -184,10 +184,10 @@ export default function Footer() {
               className="no-underline"
               style={{ textDecoration: "none", color: "inherit" }}
             >
-              Digivisor Growth Agency
+              Digivisor Growth Agency tarafından
             </a>
             <span className="ml-1" style={{ color: "#39FF14" }}>💚 </span>
-            geliştirildi. Tüm hakları saklıdır.
+            ile geliştirildi. Tüm hakları saklıdır.
           </p>
         </div>
       </div>
