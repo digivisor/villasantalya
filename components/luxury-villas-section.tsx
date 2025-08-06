@@ -18,7 +18,7 @@ export default function LuxuryVillasSection() {
               {/* Bottom image container */}
               <div className="relative h-72 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl">
                 <Image
-                  src="https://www.villasantalya.com/wp-content/uploads/2025/02/home-img01.webp"
+                  src="https://dtthemes.kinsta.cloud/veedoo/wp-content/uploads/sites/3/2024/04/home-img01.webp"
                   alt="Luxury Villa with Infinity Pool"
                   fill
                   className="object-cover"
@@ -84,7 +84,7 @@ export default function LuxuryVillasSection() {
               {/* Top image container */}
               <div className="relative h-64 rounded-[2.5rem] overflow-hidden border-8 border-white shadow-2xl">
                 <Image
-                  src="https://www.villasantalya.com/wp-content/uploads/2024/04/home-img02.png"
+                  src="https://dtthemes.kinsta.cloud/veedoo/wp-content/uploads/sites/3/2024/04/home-img02.webp"
                   alt="Modern Villa with Angular Design"
                   fill
                   className="object-cover"
