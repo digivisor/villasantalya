@@ -126,7 +126,7 @@ export default function MyPropertiesPage() {
   const handleViewProperty = (slug: string) => {
     // Eğer slug varsa detay sayfasına yönlendir
     if (slug) {
-      window.open(`/properties/${slug}`, '_blank');
+      window.open(`/emlaklistesi/${slug}`, '_blank');
     }
   };
 

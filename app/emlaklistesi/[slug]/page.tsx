@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import Header from "@/components/Header";
 import {
   MapPin,
   Phone,
@@ -397,7 +398,7 @@ export default function PropertyDetailPage() {
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">İlan Bulunamadı</h2>
           <p className="text-gray-600 mb-6">{error || 'Aradığınız emlak ilanı sistemimizde bulunmamaktadır.'}</p>
-          <Link href="/properties" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
+          <Link href="/emlaklistesi" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
             Tüm İlanlara Dön
           </Link>
         </div>
@@ -474,104 +475,8 @@ export default function PropertyDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Top Bar */}
-      <div className="bg-gray-800/90 text-white text-sm py-2 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between">
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6 mb-2 sm:mb-0">
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-orange-500" />
-              <span>Lara, Muratpaşa Antalya</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Phone className="w-4 h-4 text-orange-500" />
-              <span>+90 551 389 52 55</span>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span>Pzt to Cmt - 09:00 to 21:00</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Facebook className="w-4 h-4 hover:text-orange-500 cursor-pointer" />
-              <Twitter className="w-4 h-4 hover:text-orange-500 cursor-pointer" />
-              <Youtube className="w-4 h-4 hover:text-orange-500 cursor-pointer" />
-              <Instagram className="w-4 h-4 hover:text-orange-500 cursor-pointer" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header */}
-      <header className="bg-gray-900/95 backdrop-blur-sm text-white py-4 px-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/">
-              <Image
-                src="/villasantalya-logo.png"
-                alt="VillasAntalya Logo"
-                width={80}
-                height={60}
-                className="h-12 w-auto"
-              />
-            </Link>
-          </div>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="hover:text-orange-500 transition-colors">
-              Anasayfa
-            </Link>
-            <Link href="/about" className="hover:text-orange-500 transition-colors">
-              Hakkımızda
-            </Link>
-            <Link href="/properties" className="text-orange-500 hover:text-orange-400 font-medium">
-              Emlak Listesi
-            </Link>
-            <Link href="/blog" className="hover:text-orange-500 transition-colors">
-              Blog
-            </Link>
-            <Link href="/contact" className="hover:text-orange-500 transition-colors">
-              İletişim
-            </Link>
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden text-white focus:outline-none" 
-            onClick={toggleMobileMenu}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <nav className="md:hidden bg-gray-800 py-4 px-4 mt-2 rounded-lg">
-            <div className="flex flex-col space-y-3">
-              <Link href="/" className="text-white hover:text-orange-500 transition-colors py-2">
-                Anasayfa
-              </Link>
-              <Link href="/about" className="text-white hover:text-orange-500 transition-colors py-2">
-                Hakkımızda
-              </Link>
-              <Link href="/properties" className="text-orange-500 hover:text-orange-400 font-medium py-2">
-                Emlak Listesi
-              </Link>
-              <Link href="/blog" className="text-white hover:text-orange-500 transition-colors py-2">
-                Blog
-              </Link>
-              <Link href="/contact" className="text-white hover:text-orange-500 transition-colors py-2">
-                İletişim
-              </Link>
-            </div>
-          </nav>
-        )}
-      </header>
-
+      <Header/>
+      
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4 px-4">
         <div className="max-w-7xl mx-auto">
@@ -580,7 +485,7 @@ export default function PropertyDetailPage() {
               Anasayfa
             </Link>
             <span>/</span>
-            <Link href="/properties" className="hover:text-orange-500 transition-colors">
+            <Link href="/emlaklistesi" className="hover:text-orange-500 transition-colors">
               Emlak Listesi
             </Link>
             <span>/</span>
@@ -912,7 +817,7 @@ export default function PropertyDetailPage() {
                       onClick={() => {
                         const agentId = property.agent?._id || property.agent?.id;
                         if (agentId) {
-                          router.push(`/agents/${agentId}`);
+                          router.push(`/danisman/${agentId}`);
                         }
                       }}
                     >
@@ -1011,7 +916,7 @@ export default function PropertyDetailPage() {
               {relatedProperties.map((relatedProperty) => (
                 <Link
                   key={relatedProperty._id || relatedProperty.id}
-                  href={`/properties/${relatedProperty.slug || relatedProperty._id || relatedProperty.id}`}
+                  href={`/emlaklistesi/${relatedProperty.slug || relatedProperty._id || relatedProperty.id}`}
                   className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group"
                 >
                   <div className="relative h-40 md:h-48 overflow-hidden">

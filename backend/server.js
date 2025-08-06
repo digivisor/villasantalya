@@ -89,11 +89,11 @@ try {
 }
 
 try {
-  const settingsRoutes = require('./src/routes/settings.routes');
-  app.use('/api/settings', settingsRoutes);
-  console.log('Settings routes loaded');
+  const settingRoutes = require('./src/routes/setting.routes');
+  app.use('/api/settings', settingRoutes);
+  console.log('Setting routes loaded');
 } catch (error) {
-  console.error('Error loading settings routes:', error);
+  console.error('Error loading setting routes:', error);
 }
 
 // Base route

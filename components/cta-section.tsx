@@ -1,27 +1,54 @@
+'use client';
+
 import { Button } from "@/components/ui/button"
 import { Phone, MessageCircle, Mail } from "lucide-react"
 import { useState, useEffect } from "react"
+import { getContactInfo, getYoutubeVideoId } from '../app/services/settings.service'
+
+interface ContactInfo {
+  phone: string;
+  email: string;
+}
 
 export default function CTASection() {
-  // Video URL'sini state olarak tutuyoruz, admin panelden değiştirilebilecek
-  const [videoId, setVideoId] = useState("dQw4w9WgXcQ") // Örnek bir YouTube video ID'si
-  
-  // Gerçek bir uygulamada bu videoId admin panelden çekilecek
+  const [videoId, setVideoId] = useState("dQw4w9WgXcQ")
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    phone: '',
+    email: ''
+  });
+
   useEffect(() => {
-    // Burada API'den veya localStorage'dan video ID'si çekilebilir
-    const fetchVideoId = async () => {
+    const fetchData = async () => {
       try {
-        // Örnek bir API çağrısı
-        // const response = await fetch('/api/settings/youtube-video');
-        // const data = await response.json();
-        // setVideoId(data.videoId);
+        // Token'ı localStorage'dan al
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+
+        // Video ID'yi çek
+        const videoData = await getYoutubeVideoId(token);
+        if (videoData.videoId) {
+          setVideoId(videoData.videoId);
+        }
+
+        // İletişim bilgilerini çek
+        const contactData = await getContactInfo(token);
+        setContactInfo(contactData);
       } catch (error) {
-        console.error("Video ID çekilemedi:", error);
+        console.error("Veriler çekilemedi:", error);
       }
     }
     
-    fetchVideoId();
+    fetchData();
   }, []);
+
+  // Telefon numarasını formatla ve WhatsApp linki oluştur
+  const formatPhoneForCall = (phone: string) => {
+    return phone.replace(/\s/g, ''); // Boşlukları kaldır
+  };
+
+  const formatPhoneForWhatsApp = (phone: string) => {
+    const cleanNumber = phone.replace(/\s/g, '').replace(/^\+/, '');
+    return `https://wa.me/${cleanNumber}`;
+  };
 
   return (
     <section className="py-16 px-4 bg-gradient-to-r from-orange-500 to-orange-600">
@@ -38,13 +65,17 @@ export default function CTASection() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button className="bg-white text-orange-500 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+              <Button
+                className="bg-white text-orange-500 hover:bg-gray-100 px-8 py-3 text-lg font-semibold"
+                onClick={() => window.location.href = `tel:${formatPhoneForCall(contactInfo.phone)}`}
+              >
                 <Phone className="w-5 h-5 mr-2" />
                 Hemen Ara
               </Button>
               <Button
                 variant="outline"
                 className="border-white text-white hover:bg-white hover:text-orange-500 px-8 py-3 text-lg font-semibold bg-transparent"
+                onClick={() => window.open(formatPhoneForWhatsApp(contactInfo.phone), '_blank')}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 WhatsApp
@@ -52,18 +83,22 @@ export default function CTASection() {
             </div>
 
             <div className="mt-8 flex items-center space-x-6 text-orange-100">
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span>+90 551 389 52 55</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
-                <span>info@villasantalya.com</span>
-              </div>
+              {contactInfo.phone && (
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span>{contactInfo.phone}</span>
+                </div>
+              )}
+              {contactInfo.email && (
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span>{contactInfo.email}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* YouTube Video (replaced image) */}
+          {/* YouTube Video */}
           <div className="relative h-96 rounded-3xl overflow-hidden shadow-xl">
             <iframe
               src={`https://www.youtube-nocookie.com/embed/${videoId}`}

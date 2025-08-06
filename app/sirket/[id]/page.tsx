@@ -445,7 +445,7 @@ export default function CompanyProfilePage() {
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Şirket Bulunamadı</h2>
           <p className="text-gray-600 mb-6">Aradığınız emlak şirketi sistemimizde bulunmamaktadır.</p>
-          <Link href="/properties" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
+          <Link href="/emlaklistesi" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
             Emlak Listesine Dön
           </Link>
         </div>
@@ -472,23 +472,21 @@ export default function CompanyProfilePage() {
             <Link href="/" className="hover:text-orange-500 transition-colors">
               Anasayfa
             </Link>
-            <Link href="/about" className="hover:text-orange-500 transition-colors">
+            <Link href="/hakkimizda" className="hover:text-orange-500 transition-colors">
               Hakkımızda
             </Link>
-            <Link href="/properties" className="hover:text-orange-500 transition-colors">
+            <Link href="/emlaklistesi" className="hover:text-orange-500 transition-colors">
               Emlak Listesi
             </Link>
             <Link href="/blog" className="hover:text-orange-500 transition-colors">
               Blog
             </Link>
-            <Link href="/contact" className="hover:text-orange-500 transition-colors">
+            <Link href="/iletisim" className="hover:text-orange-500 transition-colors">
               İletişim
             </Link>
           </nav>
 
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">
-            Giriş Yap / Kayıt Ol
-          </Button>
+   
         </div>
       </header>
 
@@ -773,7 +771,7 @@ export default function CompanyProfilePage() {
                         {company.agents.slice(0, 2).map((agent: any) => (
                           <Link 
                             key={agent.id}
-                            href={`/agents/${agent.id}`}
+                            href={`/danisman/${agent.id}`}
                             className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                           >
                             <div className="relative w-14 h-14 mr-3">
@@ -862,7 +860,7 @@ export default function CompanyProfilePage() {
                     filteredProperties.map((property) => (
                       <Link
                         key={property.id}
-                        href={`/properties/${property.id}`}
+                        href={`/emlaklistesi/${property.id}`}
                         className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group block"
                       >
                         <div className="flex flex-col">
@@ -888,7 +886,7 @@ export default function CompanyProfilePage() {
                             
                             {/* Agent Badge */}
                             <Link
-                              href={`/agents/${property.agent.id}`}
+                              href={`/danisman/${property.agent.id}`}
                               className="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-md text-xs font-medium flex items-center hover:bg-white transition-colors"
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -977,7 +975,7 @@ export default function CompanyProfilePage() {
                   {company.agents.map((agent: any) => (
                     <Link 
                       key={agent.id}
-                      href={`/agents/${agent.id}`}
+                      href={`/danisman/${agent.id}`}
                       className="bg-white rounded-xl shadow-md overflow-hidden group hover:shadow-xl transition-all duration-300"
                     >
                       {/* Agent Image */}

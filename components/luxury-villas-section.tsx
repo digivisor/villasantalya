@@ -29,45 +29,16 @@ export default function LuxuryVillasSection() {
                   <div className="flex items-center space-x-4">
                     {/* User Avatars */}
                     <div className="flex -space-x-3">
-                      <div className="w-11 h-11 rounded-full border-3 border-white overflow-hidden">
+                      <div className="w-15 h-11 rounded-full border-3 border-white overflow-hidden">
                         <Image
-                          src="/placeholder.svg?height=44&width=44&text=👩"
+                          src="https://dtthemes.kinsta.cloud/veedoo/wp-content/uploads/sites/3/2024/01/clients.png"
                           alt="User 1"
-                          width={44}
-                          height={44}
+                          width={270}
+                          height={100}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <div className="w-11 h-11 rounded-full border-3 border-white overflow-hidden">
-                        <Image
-                          src="/placeholder.svg?height=44&width=44&text=👨"
-                          alt="User 2"
-                          width={44}
-                          height={44}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="w-11 h-11 rounded-full border-3 border-white overflow-hidden">
-                        <Image
-                          src="/placeholder.svg?height=44&width=44&text=👴"
-                          alt="User 3"
-                          width={44}
-                          height={44}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="w-11 h-11 rounded-full border-3 border-white overflow-hidden">
-                        <Image
-                          src="/placeholder.svg?height=44&width=44&text=👨‍💼"
-                          alt="User 4"
-                          width={44}
-                          height={44}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="w-11 h-11 rounded-full bg-orange-500 border-3 border-white flex items-center justify-center text-xs font-bold">
-                        69+
-                      </div>
+                  
                     </div>
                     {/* Text */}
                     <div className="text-sm font-medium whitespace-nowrap">Dünya çapında en iyi derecelendiriler</div>

@@ -1,103 +1,172 @@
-// C:\Users\VICTUS\Desktop\villasantalya\backend\src\controllers\settings.controller.js
-const Settings = require('../models/settings.model');
+const Settings = require('../models/setting.model');
 const fs = require('fs');
 const path = require('path');
 
-// Site ayarlarını getir
 exports.getSettings = async (req, res) => {
   try {
     const settings = await Settings.getInstance();
-    
-    res.status(200).json({
-      settings
-    });
+    res.status(200).json(settings);
   } catch (error) {
-    res.status(500).json({
-      message: 'Site ayarları alınamadı',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Site ayarları alınamadı', error: error.message });
   }
 };
 
-// Site ayarlarını güncelle
+exports.createSettings = async (req, res) => {
+  try {
+    const { siteTitle, siteDescription, contactEmail, contactPhone, address, socialLinks } = req.body;
+    const settings = new Settings({ siteTitle, siteDescription, contactEmail, contactPhone, address, socialLinks });
+    await settings.save();
+    res.status(201).json(settings);
+  } catch (error) {
+    res.status(500).json({ message: 'Site ayarları oluşturulamadı', error: error.message });
+  }
+};
+
 exports.updateSettings = async (req, res) => {
   try {
     const settings = await Settings.getInstance();
-    
-    // Güncellenecek alanlar
     const updateData = { ...req.body };
-    
-    // Dosyaları kontrol et
+
+    // Logo / favicon
     if (req.files) {
-      // Logo
-      if (req.files.logoImage) {
-        // Eski logoyu sil
+      if (req.files.logo) {
         if (settings.logoImage) {
-          const oldLogoPath = path.join(__dirname, '../../', settings.logoImage);
-          if (fs.existsSync(oldLogoPath)) {
-            fs.unlinkSync(oldLogoPath);
-          }
+          const oldLogo = path.join(__dirname, '../../', settings.logoImage);
+          if (fs.existsSync(oldLogo)) fs.unlinkSync(oldLogo);
         }
-        updateData.logoImage = `/uploads/settings/${req.files.logoImage[0].filename}`;
+        updateData.logoImage = `/uploads/settings/${req.files.logo[0].filename}`;
       }
-      
-      // Favicon
-      if (req.files.faviconImage) {
-        // Eski favicon'u sil
+      if (req.files.favicon) {
         if (settings.faviconImage) {
-          const oldFaviconPath = path.join(__dirname, '../../', settings.faviconImage);
-          if (fs.existsSync(oldFaviconPath)) {
-            fs.unlinkSync(oldFaviconPath);
-          }
+          const oldFav = path.join(__dirname, '../../', settings.faviconImage);
+          if (fs.existsSync(oldFav)) fs.unlinkSync(oldFav);
         }
-        updateData.faviconImage = `/uploads/settings/${req.files.faviconImage[0].filename}`;
+        updateData.faviconImage = `/uploads/settings/${req.files.favicon[0].filename}`;
       }
     }
-    
-    // JSON parse işlemi
-    if (updateData.socialLinks) updateData.socialLinks = JSON.parse(updateData.socialLinks);
-    
-    const updatedSettings = await Settings.findByIdAndUpdate(
-      settings._id,
-      { $set: updateData },
-      { new: true }
-    );
-    
-    res.status(200).json({
-      message: 'Site ayarları başarıyla güncellendi',
-      settings: updatedSettings
-    });
+
+    // socialLinks JSON parse
+    if (updateData.socialLinks && typeof updateData.socialLinks === 'string') {
+      updateData.socialLinks = JSON.parse(updateData.socialLinks);
+    }
+
+    const updated = await Settings.findByIdAndUpdate(settings._id, { $set: updateData }, { new: true });
+    res.status(200).json(updated);
   } catch (error) {
-    res.status(500).json({
-      message: 'Site ayarları güncellenemedi',
-      error: error.message
+    res.status(500).json({ message: 'Site ayarları güncellenemedi', error: error.message });
+  }
+};
+
+exports.getSocialLinks = async (req, res) => {
+  try {
+    const settings = await Settings.getInstance();
+    res.status(200).json(settings.socialLinks || {});
+  } catch (error) {
+    res.status(500).json({ message: 'Sosyal linkler alınamadı', error: error.message });
+  }
+};
+
+exports.updateSocialLinks = async (req, res) => {
+  try {
+    const settings = await Settings.getInstance();
+    settings.socialLinks = req.body.socialLinks;
+    await settings.save();
+    res.status(200).json(settings.socialLinks);
+  } catch (error) {
+    res.status(500).json({ message: 'Sosyal linkler güncellenemedi', error: error.message });
+  }
+};
+
+exports.getYoutubeVideo = async (req, res) => {
+  try {
+    const settings = await Settings.getInstance();
+    res.status(200).json({ videoId: settings.youtubeVideoId });
+  } catch (error) {
+    res.status(500).json({ message: 'YouTube video ID alınamadı', error: error.message });
+  }
+};
+
+exports.updateYoutubeVideo = async (req, res) => {
+  try {
+    const { videoId } = req.body;
+    if (!videoId) return res.status(400).json({ message: 'videoId gerekli' });
+
+    const settings = await Settings.getInstance();
+    settings.youtubeVideoId = videoId;
+    await settings.save();
+
+    res.status(200).json({ success: true, videoId });
+  } catch (error) {
+    res.status(500).json({ message: 'YouTube video ID güncellenemedi', error: error.message });
+  }
+};
+exports.getContactInfo = async (req, res) => {
+  try {
+    const settings = await Settings.getInstance();
+    const contactInfo = {
+      address: settings.address || '',
+      phone: settings.contactPhone || '',
+      email: settings.contactEmail || ''
+    };
+    res.status(200).json(contactInfo);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'İletişim bilgileri alınamadı', 
+      error: error.message 
+    });
+  }
+};
+exports.getWorkingHours = async (req, res) => {
+  try {
+    const settings = await Settings.getInstance();
+    res.status(200).json(settings.workingHours || {});
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Çalışma saatleri alınamadı', 
+      error: error.message 
     });
   }
 };
 
-// YouTube video ID'sini güncelle
-exports.updateYoutubeVideo = async (req, res) => {
+exports.updateWorkingHours = async (req, res) => {
   try {
-    const { youtubeVideoId } = req.body;
-    
-    if (!youtubeVideoId) {
-      return res.status(400).json({
-        message: 'YouTube video ID gerekli'
-      });
+    const { workingHours } = req.body;
+    if (!workingHours) {
+      return res.status(400).json({ message: 'Çalışma saatleri gerekli' });
     }
-    
+
     const settings = await Settings.getInstance();
-    settings.youtubeVideoId = youtubeVideoId;
+    settings.workingHours = workingHours;
+    await settings.save();
+    
+    res.status(200).json(settings.workingHours);
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Çalışma saatleri güncellenemedi', 
+      error: error.message 
+    });
+  }
+};
+exports.updateContactInfo = async (req, res) => {
+  try {
+    const { address, phone, email } = req.body;
+    const settings = await Settings.getInstance();
+    
+    settings.address = address;
+    settings.contactPhone = phone;
+    settings.contactEmail = email;
+    
     await settings.save();
     
     res.status(200).json({
-      message: 'YouTube video ID başarıyla güncellendi',
-      youtubeVideoId
+      address: settings.address,
+      phone: settings.contactPhone,
+      email: settings.contactEmail
     });
   } catch (error) {
-    res.status(500).json({
-      message: 'YouTube video ID güncellenemedi',
-      error: error.message
+    res.status(500).json({ 
+      message: 'İletişim bilgileri güncellenemedi', 
+      error: error.message 
     });
   }
 };

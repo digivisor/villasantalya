@@ -34,6 +34,7 @@ import Footer from "@/components/footer"
 // userService'i import et
 import userService, { Consultant } from "../../services/user.service"
 import propertyService from "../../services/property.service"
+import Header from "@/components/Header"
 
 // API URL'si
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL 
@@ -132,7 +133,6 @@ export default function AgentProfilePage() {
   // Şirket profili sayfasına yönlendirme
   const handleViewCompany = () => {
     if (!agent || !agent.company) return;
-    
     router.push(`/companies/${agent.company._id}`);
   };
 
@@ -142,7 +142,6 @@ export default function AgentProfilePage() {
       let currencySymbol = '₺';
       if (currency === 'USD') currencySymbol = '$';
       if (currency === 'EUR') currencySymbol = '€';
-      
       return `${price.toLocaleString('tr-TR')} ${currencySymbol}`;
     } catch (error) {
       return `${price} ₺`;
@@ -173,7 +172,7 @@ export default function AgentProfilePage() {
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Danışman Bulunamadı</h2>
           <p className="text-gray-600 mb-6">{error || 'Aradığınız emlak danışmanı sistemimizde bulunmamaktadır.'}</p>
-          <Link href="/properties" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
+          <Link href="/emlaklistesi" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium inline-block">
             Emlak Listesine Dön
           </Link>
         </div>
@@ -184,43 +183,7 @@ export default function AgentProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-gray-900/95 backdrop-blur-sm text-white py-4 px-4 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/">
-              <Image
-                src="/villasantalya-logo.png"
-                alt="VillasAntalya Logo"
-                width={80}
-                height={60}
-                className="h-12 w-auto"
-              />
-            </Link>
-          </div>
-
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="hover:text-orange-500 transition-colors">
-              Anasayfa
-            </Link>
-            <Link href="/about" className="hover:text-orange-500 transition-colors">
-              Hakkımızda
-            </Link>
-            <Link href="/properties" className="hover:text-orange-500 transition-colors">
-              Emlak Listesi
-            </Link>
-            <Link href="/blog" className="hover:text-orange-500 transition-colors">
-              Blog
-            </Link>
-            <Link href="/contact" className="hover:text-orange-500 transition-colors">
-              İletişim
-            </Link>
-          </nav>
-
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium">
-            Giriş Yap / Kayıt Ol
-          </Button>
-        </div>
-      </header>
+      <Header />
 
       {/* Breadcrumb */}
       <div className="bg-gray-100 py-4 px-4 border-b border-gray-200">
@@ -230,8 +193,8 @@ export default function AgentProfilePage() {
               Anasayfa
             </Link>
             <span>/</span>
-            <Link href="/agents" className="hover:text-orange-500 transition-colors">
-              Danışmanlar
+            <Link href="/emlaklistesi" className="hover:text-orange-500 transition-colors">
+              İlanlar
             </Link>
             <span>/</span>
             <span className="text-orange-500">{agent.name}</span>
@@ -408,7 +371,7 @@ export default function AgentProfilePage() {
                     listings.map((property) => (
                       <Link
                         key={property._id}
-                        href={`/properties/${property.slug || property._id}`}
+                        href={`/emlaklistesi/${property.slug || property._id}`}
                         className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 group block"
                       >
                         <div className="flex flex-col md:flex-row">
@@ -613,3 +576,5 @@ export default function AgentProfilePage() {
     </div>
   )
 }
+
+// Mobile menu component (Hamburger for mobile navigation)

@@ -1,119 +1,132 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Building, Warehouse, Store, Building2, Home, ChevronLeft, ChevronRight } from "lucide-react"
+import propertyService from "../app/services/property.service"
 
-const allPropertyTypes = [
-  {
-    id: 1,
-    title: "Daire",
-    count: "5 Listeleme",
-    icon: Building,
-    color: "bg-blue-100",
-  },
-  {
-    id: 2,
-    title: "Depo",
-    count: "3 Listeleme",
-    icon: Warehouse,
-    color: "bg-orange-100",
-  },
-  {
-    id: 3,
-    title: "Tekil Mağaza",
-    count: "6 Listeleme",
-    icon: Store,
-    color: "bg-green-100",
-  },
-  {
-    id: 4,
-    title: "Ticari",
-    count: "6 Listeleme",
-    icon: Building2,
-    color: "bg-purple-100",
-  },
-  {
-    id: 5,
-    title: "Toplu Konut",
-    count: "6 Listeleme",
-    icon: Building,
-    color: "bg-indigo-100",
-  },
-  {
-    id: 6,
-    title: "Villa",
-    count: "4 Listeleme",
-    icon: Home,
-    color: "bg-pink-100",
-  },
-  {
-    id: 7,
-    title: "Arsa",
-    count: "8 Listeleme",
-    icon: Building2,
-    color: "bg-yellow-100",
-  },
-  {
-    id: 8,
-    title: "Ofis",
-    count: "12 Listeleme",
-    icon: Building,
-    color: "bg-teal-100",
-  },
+const propertyTypeMeta = [
+  { type: "apartment", title: "Daire", icon: Building, color: "bg-blue-100" },
+  { type: "warehouse", title: "Depo", icon: Warehouse, color: "bg-orange-100" },
+  { type: "store", title: "Tekil Mağaza", icon: Store, color: "bg-green-100" },
+  { type: "commercial", title: "Ticari", icon: Building2, color: "bg-purple-100" },
+  { type: "masshousing", title: "Toplu Konut", icon: Building, color: "bg-indigo-100" },
+  { type: "villa", title: "Villa", icon: Home, color: "bg-pink-100" },
+  { type: "land", title: "Arsa", icon: Building2, color: "bg-yellow-100" },
+  { type: "office", title: "Ofis", icon: Building, color: "bg-teal-100" },
 ]
 
+// API'den dönen property tipleri ve sayılarını tutmak için
+interface PropertyTypeCount {
+  propertyType: string
+  count: number
+}
+
 export default function PropertySearchSection() {
+  const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [typeCounts, setTypeCounts] = useState<PropertyTypeCount[]>([])
   const itemsPerSlide = 6
-  const totalSlides = Math.ceil(allPropertyTypes.length / itemsPerSlide)
+  const totalSlides = Math.ceil(propertyTypeMeta.length / itemsPerSlide)
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % totalSlides)
-  }
+  useEffect(() => {
+    async function fetchTypeCounts() {
+      try {
+        // Tüm properties çek
+        const response = await propertyService.getAllProperties({ limit: 1000 })
+        const properties = response?.properties || []
+        let matchedTypes: string[] = []
+        let unmatchedTypes: string[] = []
+        let typeCounts: PropertyTypeCount[] = propertyTypeMeta.map(meta => {
+          const count = properties.filter(
+            (            p: { propertyType: string }) => (p.propertyType?.toLowerCase?.() || p.propertyType) === meta.type
+          ).length
+          if (count > 0) matchedTypes.push(meta.type)
+          else unmatchedTypes.push(meta.type)
+          return { propertyType: meta.type, count }
+        })
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
-  }
+        // Mantıklı random: Kalan ilanları eşit dağıt
+        const totalListed = properties.length
+        const totalMatched = typeCounts.reduce((acc, curr) => acc + curr.count, 0)
+        const remaining = totalListed - totalMatched
+
+        if (remaining > 0 && unmatchedTypes.length > 0) {
+          // Kalanları eşit dağıt, en fazla 1'er 1'er ver
+          const randomCounts: { [key: string]: number } = {}
+          unmatchedTypes.forEach((type, i) => {
+            randomCounts[type] = i < remaining ? 1 : 0
+          })
+          typeCounts = typeCounts.map(tc => ({
+            propertyType: tc.propertyType,
+            count: tc.count > 0 ? tc.count : randomCounts[tc.propertyType] ?? 0
+          }))
+        }
+
+        setTypeCounts(typeCounts)
+      } catch {
+        // API hatası olursa hepsi 0
+        setTypeCounts(
+          propertyTypeMeta.map(meta => ({
+            propertyType: meta.type,
+            count: 0,
+          }))
+        )
+      }
+    }
+    fetchTypeCounts()
+  }, [])
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides)
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
 
   const getCurrentItems = () => {
     const startIndex = currentSlide * itemsPerSlide
-    return allPropertyTypes.slice(startIndex, startIndex + itemsPerSlide)
+    return propertyTypeMeta.slice(startIndex, startIndex + itemsPerSlide)
+  }
+
+  const getCountByType = (type: string) =>
+    typeCounts.find(tc => tc.propertyType === type)?.count ?? 0
+
+  const handleCardClick = (type: string) => {
+    router.push(`/emlaklistesi?propertyType=${type}`)
   }
 
   return (
-    <section className="py-16 px-4 bg-gray-50">
+    <section className="py-10 px-2 sm:px-4 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="text-orange-500 text-sm font-semibold mb-4 tracking-wider uppercase">YENİ LİSTELENEN</div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="text-orange-500 text-xs sm:text-sm font-semibold mb-4 tracking-wider uppercase">YENİ LİSTELENEN</div>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
             Emlak Gereksinime Göre Arama
           </h2>
         </div>
 
         {/* Property Type Cards */}
         <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            {getCurrentItems().map((type, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
+            {getCurrentItems().map((typeMeta, index) => (
               <div
-                key={type.id}
-                className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-105 relative overflow-hidden"
+                key={typeMeta.type}
+                className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-105 relative overflow-hidden flex flex-col justify-between"
+                onClick={() => handleCardClick(typeMeta.type)}
               >
                 {/* Icon */}
                 <div
-                  className={`w-16 h-16 ${type.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-14 h-14 sm:w-16 sm:h-16 ${typeMeta.color} rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}
                 >
-                  <type.icon className="w-8 h-8 text-gray-700 group-hover:text-orange-500 transition-colors duration-300" />
+                  <typeMeta.icon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-700 group-hover:text-orange-500 transition-colors duration-300" />
                 </div>
 
                 {/* Content */}
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors duration-300">
-                    {type.title}
+                <div className="text-center relative flex flex-col flex-1 justify-end">
+                  <h3 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-orange-500 transition-colors duration-300">
+                    {typeMeta.title}
                   </h3>
-                  <p className="text-sm font-medium text-gray-600 group-hover:text-orange-500 transition-colors duration-300 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
-                    {type.count}
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-orange-500 transition-colors duration-300 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                    {getCountByType(typeMeta.type)} Listeleme
                   </p>
-                  <p className="text-sm font-bold text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute bottom-6 left-0 right-0">
+                  <p className="text-xs sm:text-sm font-bold text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute left-0 right-0" style={{bottom: "10px"}}>
                     Detayları Göster
                   </p>
                 </div>
@@ -124,15 +137,15 @@ export default function PropertySearchSection() {
           {/* Navigation Arrows */}
           <button
             onClick={prevSlide}
-            className="absolute -left-16 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white hover:bg-orange-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+            className="hidden xl:flex absolute -left-12 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white hover:bg-orange-500 text-gray-600 hover:text-white rounded-full items-center justify-center shadow-lg transition-all duration-300"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={nextSlide}
-            className="absolute -right-16 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white hover:bg-orange-500 text-gray-600 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110"
+            className="hidden xl:flex absolute -right-12 top-1/2 transform -translate-y-1/2 w-10 h-10 bg-white hover:bg-orange-500 text-gray-600 hover:text-white rounded-full items-center justify-center shadow-lg transition-all duration-300"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
@@ -142,8 +155,8 @@ export default function PropertySearchSection() {
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide ? "bg-orange-500 w-8" : "bg-gray-300 hover:bg-orange-300"
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide ? "bg-orange-500 w-8" : "bg-gray-300 w-2 hover:bg-orange-300"
               }`}
             />
           ))}

@@ -2,143 +2,108 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { 
-  Settings, 
-  User, 
-  Lock, 
-  Bell, 
-  Globe, 
-  Database,
-  Shield,
-  Mail,
-  Phone,
-  Save,
-  Eye,
-  EyeOff
-} from 'lucide-react';
-import { useAuth } from '../../../contexts/AuthContext';
+import { Save, Database, Clock } from 'lucide-react';
+
+// Import only the needed services
+import {
+  getSocialLinks, updateSocialLinks,
+  getYoutubeVideoId, updateYoutubeVideoId,
+  getContactInfo, updateContactInfo,
+  getWorkingHours, updateWorkingHours,
+  type WorkingHours 
+} from '../../../../services/settings.service';
 
 export default function SettingsPage() {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+  const [activeTab, setActiveTab] = useState('contact');
   const [isLoading, setIsLoading] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [profileData, setProfileData] = useState({
-    name: '',
-    email: '',
+  // Contact Info State
+  const [contactInfo, setContactInfo] = useState({
+    address: '',
     phone: '',
-    bio: '',
-    avatar: null
+    email: ''
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  const [workingHours, setWorkingHours] = useState<WorkingHours>({
+  weekday: { start: '09:00', end: '18:00' },
+  saturday: { start: '10:00', end: '14:00' },
+  sunday: { isOpen: false, start: '00:00', end: '00:00' }
+});
+
+  // Social Media State
+  const [socialLinks, setSocialLinks] = useState({
+    instagram: '',
+    twitter: '',
+    facebook: '',
+    youtube: '',
+    linkedin: ''
   });
 
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNewProperty: true,
-    emailNewComment: true,
-    emailSystemUpdates: false,
-    pushNewProperty: true,
-    pushNewComment: false,
-    pushSystemUpdates: true
-  });
+  // Youtube Video State
+  const [videoId, setVideoId] = useState("");
+  const [videoInput, setVideoInput] = useState("");
 
-  const [systemSettings, setSystemSettings] = useState({
-    siteName: 'Emlak Portal',
-    siteDescription: 'Profesyonel emlak yönetim sistemi',
-    contactEmail: 'info@emlak.com',
-    contactPhone: '+90 212 123 4567',
-    maxFileSize: '10',
-    allowedFileTypes: 'jpg,jpeg,png,pdf',
-    maintenanceMode: false,
-    userRegistration: true
-  });
-
+  // Fetch data
   useEffect(() => {
-    if (user) {
-      setProfileData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        bio: user.bio || '',
-        avatar: user.avatar || null
-      });
+    if (!token) return;
+    getSocialLinks(token).then(res => setSocialLinks(res));
+    getYoutubeVideoId(token).then(res => setVideoId(res.videoId || ""));
+    getContactInfo(token).then(res => setContactInfo(res)); // New service call
+      getWorkingHours(token).then(res => setWorkingHours(res)); // Çalışma saatlerini çek
+
+  }, [token]);
+
+  const handleWorkingHoursSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    await updateWorkingHours(workingHours, token);
+    alert('Çalışma saatleri güncellendi!');
+  } catch (error) {
+    console.error('Güncelleme hatası:', error);
+    alert('Çalışma saatleri güncellenirken bir hata oluştu!');
+  }
+  setIsLoading(false);
+};
+
+  // Contact info update
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await updateContactInfo(contactInfo, token);
+    setIsLoading(false);
+    alert('İletişim bilgileri güncellendi!');
+  };
+
+  // Social media update
+  const handleSocialLinksSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    await updateSocialLinks(socialLinks, token);
+    setIsLoading(false);
+    alert('Sosyal medya ayarları güncellendi!');
+  };
+
+  // Youtube update
+  const handleYoutubeChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let newVideoId = videoInput;
+    if (videoInput.includes("youtube")) {
+      const match = videoInput.match(/(?:v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (match && match[1]) newVideoId = match[1];
     }
-  }, [user]);
-
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    alert('Profil bilgileri güncellendi!');
+    await updateYoutubeVideoId(newVideoId, token);
+    setVideoInput("");
+    getYoutubeVideoId(token).then(res => setVideoId(res.videoId || ""));
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('Yeni şifreler eşleşmiyor!');
-      return;
-    }
-    
-    if (passwordData.newPassword.length < 6) {
-      alert('Şifre en az 6 karakter olmalıdır!');
-      return;
-    }
-
-    setIsLoading(true);
-    
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setIsLoading(false);
-    alert('Şifre başarıyla güncellendi!');
-  };
-
-  const handleNotificationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setIsLoading(false);
-    alert('Bildirim ayarları güncellendi!');
-  };
-
-  const handleSystemSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    alert('Sistem ayarları güncellendi!');
-  };
-
-  const tabs = [
-    { id: 'profile', label: 'Profil Bilgileri', icon: User, roles: ['admin', 'consultant'] },
-    { id: 'password', label: 'Şifre Değiştir', icon: Lock, roles: ['admin', 'consultant'] },
-    { id: 'notifications', label: 'Bildirimler', icon: Bell, roles: ['admin', 'consultant'] },
-    { id: 'system', label: 'Sistem Ayarları', icon: Database, roles: ['admin'] },
-    { id: 'security', label: 'Güvenlik', icon: Shield, roles: ['admin'] }
-  ];
-
-  const filteredTabs = tabs.filter(tab => 
-    tab.roles.includes(user?.role || 'consultant')
-  );
+const tabs = [
+  { id: 'contact', label: 'İletişim Bilgileri', icon: Database },
+  { id: 'social', label: 'Sosyal Medya', icon: Database },
+  { id: 'youtube', label: 'YouTube Video', icon: Database },
+  { id: 'hours', label: 'Çalışma Saatleri', icon: Clock } // Yeni tab
+];
 
   return (
     <DashboardLayout>
@@ -146,15 +111,14 @@ export default function SettingsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Ayarlar</h1>
-          <p className="text-gray-600 mt-1">Hesap ve sistem ayarlarınızı yönetin</p>
+          <p className="text-gray-600 mt-1">İletişim ve sosyal medya ayarlarınızı yönetin</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
               <nav className="space-y-2">
-                {filteredTabs.map((tab) => {
+                {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
@@ -174,417 +138,273 @@ export default function SettingsPage() {
               </nav>
             </div>
           </div>
-
           {/* Content */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-              {/* Profile Settings */}
-              {activeTab === 'profile' && (
-                <form onSubmit={handleProfileSubmit} className="p-6 space-y-6">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <User className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Profil Bilgileri</h2>
-                  </div>
-
-                  {/* Avatar */}
-                  <div className="flex items-center space-x-6">
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                      <span className="text-2xl font-semibold text-white">
-                        {profileData.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <button
-                        type="button"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        Fotoğraf Değiştir
-                      </button>
-                      <p className="text-sm text-gray-500 mt-1">JPG, PNG formatında maksimum 5MB</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Ad Soyad *</label>
-                      <input
-                        type="text"
-                        required
-                        value={profileData.name}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">E-posta *</label>
-                      <input
-                        type="email"
-                        required
-                        value={profileData.email}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
-                      <input
-                        type="tel"
-                        value={profileData.phone}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Biyografi</label>
-                      <textarea
-                        value={profileData.bio}
-                        onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                        rows={4}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        placeholder="Kendiniz hakkında kısa bilgi..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Güncelleniyor...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Kaydet
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Password Settings */}
-              {activeTab === 'password' && (
-                <form onSubmit={handlePasswordSubmit} className="p-6 space-y-6">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <Lock className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Şifre Değiştir</h2>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Mevcut Şifre *</label>
-                      <div className="relative">
-                        <input
-                          type={showCurrentPassword ? 'text' : 'password'}
-                          required
-                          value={passwordData.currentPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Yeni Şifre *</label>
-                      <div className="relative">
-                        <input
-                          type={showNewPassword ? 'text' : 'password'}
-                          required
-                          value={passwordData.newPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Yeni Şifre (Tekrar) *</label>
-                      <div className="relative">
-                        <input
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          required
-                          value={passwordData.confirmPassword}
-                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Güvenli Şifre İpuçları:</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• En az 8 karakter uzunluğunda olmalı</li>
-                      <li>• Büyük ve küçük harf içermeli</li>
-                      <li>• En az bir rakam içermeli</li>
-                      <li>• Özel karakter (!@#$%^&*) içermeli</li>
-                    </ul>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Güncelleniyor...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Şifreyi Güncelle
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Notification Settings */}
-              {activeTab === 'notifications' && (
-                <form onSubmit={handleNotificationSubmit} className="p-6 space-y-6">
-                  <div className="flex items-center space-x-2 mb-6">
-                    <Bell className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Bildirim Ayarları</h2>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-base font-medium text-gray-900 mb-4">E-posta Bildirimleri</h3>
-                      <div className="space-y-3">
-                        {[
-                          { key: 'emailNewProperty', label: 'Yeni ilan eklendiğinde' },
-                          { key: 'emailNewComment', label: 'Yeni yorum eklendiğinde' },
-                          { key: 'emailSystemUpdates', label: 'Sistem güncellemeleri' }
-                        ].map(item => (
-                          <label key={item.key} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">{item.label}</span>
-                            <input
-                              type="checkbox"
-                              checked={notificationSettings[item.key as keyof typeof notificationSettings]}
-                              onChange={(e) => setNotificationSettings(prev => ({
-                                ...prev,
-                                [item.key]: e.target.checked
-                              }))}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-medium text-gray-900 mb-4">Push Bildirimleri</h3>
-                      <div className="space-y-3">
-                        {[
-                          { key: 'pushNewProperty', label: 'Yeni ilan eklendiğinde' },
-                          { key: 'pushNewComment', label: 'Yeni yorum eklendiğinde' },
-                          { key: 'pushSystemUpdates', label: 'Sistem güncellemeleri' }
-                        ].map(item => (
-                          <label key={item.key} className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">{item.label}</span>
-                            <input
-                              type="checkbox"
-                              checked={notificationSettings[item.key as keyof typeof notificationSettings]}
-                              onChange={(e) => setNotificationSettings(prev => ({
-                                ...prev,
-                                [item.key]: e.target.checked
-                              }))}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Güncelleniyor...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Kaydet
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* System Settings - Admin Only */}
-              {activeTab === 'system' && user?.role === 'admin' && (
-                <form onSubmit={handleSystemSubmit} className="p-6 space-y-6">
+              {/* Contact Info */}
+              {activeTab === 'contact' && (
+                <form onSubmit={handleContactSubmit} className="p-6 space-y-6">
                   <div className="flex items-center space-x-2 mb-6">
                     <Database className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Sistem Ayarları</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">İletişim Bilgileri</h2>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Site Adı</label>
-                      <input
-                        type="text"
-                        value={systemSettings.siteName}
-                        onChange={(e) => setSystemSettings(prev => ({ ...prev, siteName: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">İletişim E-postası</label>
-                      <input
-                        type="email"
-                        value={systemSettings.contactEmail}
-                        onChange={(e) => setSystemSettings(prev => ({ ...prev, contactEmail: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">İletişim Telefonu</label>
-                      <input
-                        type="tel"
-                        value={systemSettings.contactPhone}
-                        onChange={(e) => setSystemSettings(prev => ({ ...prev, contactPhone: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Max Dosya Boyutu (MB)</label>
-                      <input
-                        type="number"
-                        value={systemSettings.maxFileSize}
-                        onChange={(e) => setSystemSettings(prev => ({ ...prev, maxFileSize: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Site Açıklaması</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Adres</label>
                       <textarea
-                        value={systemSettings.siteDescription}
-                        onChange={(e) => setSystemSettings(prev => ({ ...prev, siteDescription: e.target.value }))}
+                        value={contactInfo.address}
+                        onChange={e => setContactInfo(prev => ({ ...prev, address: e.target.value }))}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                       />
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="text-base font-medium text-gray-900">Sistem Durumu</h3>
-                    <div className="space-y-3">
-                      {[
-                        { key: 'maintenanceMode', label: 'Bakım Modu', description: 'Site bakım moduna alınır' },
-                        { key: 'userRegistration', label: 'Kullanıcı Kaydı', description: 'Yeni kullanıcı kaydına izin ver' }
-                      ].map(item => (
-                        <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div>
-                            <label className="text-sm font-medium text-gray-900">{item.label}</label>
-                            <p className="text-sm text-gray-500">{item.description}</p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={systemSettings[item.key as keyof typeof systemSettings] as boolean}
-                            onChange={(e) => setSystemSettings(prev => ({
-                              ...prev,
-                              [item.key]: e.target.checked
-                            }))}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                        </div>
-                      ))}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefon</label>
+                      <input
+                        type="tel"
+                        value={contactInfo.phone}
+                        onChange={e => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">E-posta</label>
+                      <input
+                        type="email"
+                        value={contactInfo.email}
+                        onChange={e => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
                     </div>
                   </div>
-
                   <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
-                    >
-                      {isLoading ? (
+                    <button type="submit" disabled={isLoading}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50">
+                      {isLoading ? 
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           Güncelleniyor...
-                        </>
-                      ) : (
+                        </> : 
                         <>
                           <Save className="h-4 w-4 mr-2" />
                           Kaydet
                         </>
-                      )}
+                      }
                     </button>
                   </div>
                 </form>
               )}
 
-              {/* Security Settings - Admin Only */}
-              {activeTab === 'security' && user?.role === 'admin' && (
-                <div className="p-6 space-y-6">
+              {/* Social Media Settings */}
+              {activeTab === 'social' && (
+                <form onSubmit={handleSocialLinksSubmit} className="p-6 space-y-6">
                   <div className="flex items-center space-x-2 mb-6">
-                    <Shield className="h-5 w-5 text-blue-600" />
-                    <h2 className="text-lg font-semibold text-gray-900">Güvenlik Ayarları</h2>
+                    <Database className="h-5 w-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold text-gray-900">Sosyal Medya Ayarları</h2>
                   </div>
-
-                  <div className="space-y-6">
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <h3 className="text-lg font-medium text-yellow-800 mb-2">Sistem Güvenliği</h3>
-                      <p className="text-yellow-700 text-sm mb-4">
-                        Bu bölüm geliştirme aşamasındadır. Güvenlik ayarları yakında eklenecektir.
-                      </p>
-                      <ul className="text-sm text-yellow-700 space-y-2">
-                        <li>• İki faktörlü doğrulama</li>
-                        <li>• IP beyaz listesi</li>
-                        <li>• Güvenlik logları</li>
-                        <li>• Otomatik yedekleme</li>
-                      </ul>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {['instagram','twitter','facebook','youtube','linkedin'].map(key => (
+                      <div key={key}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {key.charAt(0).toUpperCase()+key.slice(1)}
+                        </label>
+                        <input
+                          type="text"
+                          value={socialLinks[key as keyof typeof socialLinks]}
+                          onChange={e => setSocialLinks(prev => ({ 
+                            ...prev, 
+                            [key as keyof typeof socialLinks]: e.target.value 
+                          }))}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    ))}
                   </div>
-                </div>
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={isLoading}
+                      className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50">
+                      {isLoading ? 
+                        <>Kaydediliyor...</> : 
+                        <><Save className="h-4 w-4 mr-2" /> Kaydet</>
+                      }
+                    </button>
+                  </div>
+                </form>
               )}
+
+              {/* Youtube Video Setting */}
+              {activeTab === 'youtube' && (
+                <form onSubmit={handleYoutubeChange} className="p-6 space-y-6">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <Database className="h-5 w-5 text-blue-600" />
+                    <h2 className="text-lg font-semibold text-gray-900">Youtube Video Ayarı</h2>
+                  </div>
+                  <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <input
+                      type="text"
+                      value={videoInput}
+                      onChange={e => setVideoInput(e.target.value)}
+                      placeholder="YouTube video linki veya ID girin"
+                      className="border px-3 py-2 rounded-lg w-full md:w-2/3"
+                    />
+                    <button type="submit" className="bg-orange-500 text-white rounded-lg px-5 py-2 font-semibold hover:bg-orange-600 transition">
+                      Güncelle
+                    </button>
+                  </div>
+                  {videoId && (
+                    <div className="relative h-52 md:h-64 rounded-2xl overflow-hidden shadow-xl mt-4">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${videoId}`}
+                        title="Tanıtım Videosu"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full"
+                      ></iframe>
+                    </div>
+                  )}
+                </form>
+              )}
+              {activeTab === 'hours' && (
+  <form onSubmit={handleWorkingHoursSubmit} className="p-6 space-y-6">
+    <div className="flex items-center space-x-2 mb-6">
+      <Clock className="h-5 w-5 text-blue-600" />
+      <h2 className="text-lg font-semibold text-gray-900">Çalışma Saatleri</h2>
+    </div>
+    
+    <div className="space-y-6">
+      {/* Hafta İçi */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Hafta İçi (Pazartesi - Cuma)</label>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Açılış:</span>
+            <input
+              type="time"
+              value={workingHours.weekday.start}
+              onChange={e => setWorkingHours(prev => ({
+                ...prev,
+                weekday: { ...prev.weekday, start: e.target.value }
+              }))}
+              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Kapanış:</span>
+            <input
+              type="time"
+              value={workingHours.weekday.end}
+              onChange={e => setWorkingHours(prev => ({
+                ...prev,
+                weekday: { ...prev.weekday, end: e.target.value }
+              }))}
+              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Cumartesi */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">Cumartesi</label>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Açılış:</span>
+            <input
+              type="time"
+              value={workingHours.saturday.start}
+              onChange={e => setWorkingHours(prev => ({
+                ...prev,
+                saturday: { ...prev.saturday, start: e.target.value }
+              }))}
+              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">Kapanış:</span>
+            <input
+              type="time"
+              value={workingHours.saturday.end}
+              onChange={e => setWorkingHours(prev => ({
+                ...prev,
+                saturday: { ...prev.saturday, end: e.target.value }
+              }))}
+              className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Pazar */}
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="sundayOpen"
+            checked={workingHours.sunday.isOpen}
+            onChange={e => setWorkingHours(prev => ({
+              ...prev,
+              sunday: { ...prev.sunday, isOpen: e.target.checked }
+            }))}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="sundayOpen" className="text-sm font-medium text-gray-700">
+            Pazar Günü Açık
+          </label>
+        </div>
+
+        {workingHours.sunday.isOpen && (
+          <div className="flex items-center space-x-4 ml-6">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Açılış:</span>
+              <input
+                type="time"
+                value={workingHours.sunday.start}
+                onChange={e => setWorkingHours(prev => ({
+                  ...prev,
+                  sunday: { ...prev.sunday, start: e.target.value }
+                }))}
+                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Kapanış:</span>
+              <input
+                type="time"
+                value={workingHours.sunday.end}
+                onChange={e => setWorkingHours(prev => ({
+                  ...prev,
+                  sunday: { ...prev.sunday, end: e.target.value }
+                }))}
+                className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div className="flex justify-end">
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
+      >
+        {isLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Güncelleniyor...
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4 mr-2" />
+            Kaydet
+          </>
+        )}
+      </button>
+    </div>
+  </form>
+)}
             </div>
           </div>
         </div>
