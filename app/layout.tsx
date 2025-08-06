@@ -5,9 +5,9 @@ import './globals.css'
 import { ToastProvider } from './admin/components/ui/toast-context'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'VillasAntalya ile Hayalinizin Ötesinde',
+  description: 'Antalya villalarına özel listeleme portalı',
+  generator: 'Digivisor Growth Agency',
 }
 
 export default function RootLayout({
