@@ -1,5 +1,8 @@
-const BASE_URL =  'https://api.villasantalya.com';
+const BASE_URL = "https://api.villasantalya.com/api";
 
+// const BASE_URL = "http://localhost:5000/api"; // Geliştirme ortamı için yerel URL
+
+// Ayarlar servisi
 // Sadece gerekli servisleri tutuyoruz
 export async function getSocialLinks(token: string) {
   const res = await fetch(`${BASE_URL}/settings/social-links`, { 
