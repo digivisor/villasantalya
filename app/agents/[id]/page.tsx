@@ -153,7 +153,7 @@ export default function AgentProfilePage() {
   const formatImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-agent.jpg";
     if (imagePath.startsWith('http')) return imagePath;
-    return `${apiBaseUrl}${imagePath}`;
+      return `https://api.villasantalya.com${imagePath}`;
   };
 
   if (loading) {

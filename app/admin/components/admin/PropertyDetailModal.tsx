@@ -16,7 +16,7 @@ export default function PropertyDetailsModal({ property, isOpen, onClose }: Prop
   const formatImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder.svg";
     if (imagePath.startsWith('http')) return imagePath;
-    return `${apiBaseUrl.replace('/api', '')}${imagePath}`;
+      return `https://api.villasantalya.com${imagePath}`;
   };
 
   return (

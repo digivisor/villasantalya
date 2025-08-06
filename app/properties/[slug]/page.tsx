@@ -460,7 +460,7 @@ export default function PropertyDetailPage() {
     if (imagePath.startsWith('http')) return imagePath;
     
     // Backendden gelen göreceli yolu tam URL'ye dönüştür
-    return `${apiBaseUrl.replace('/api', '')}${imagePath}`;
+    return `https://api.villasantalya.com${imagePath}`;
   };
 
   // Oda ve banyo sayılarını doğru al

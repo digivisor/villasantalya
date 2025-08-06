@@ -78,7 +78,7 @@ export default function MyPropertiesPage() {
   const formatImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-property.jpg";
     if (imagePath.startsWith('http')) return imagePath;
-    return `${apiBaseUrl}${imagePath}`;
+     return `https://api.villasantalya.com${imagePath}`;
   };
 
   useEffect(() => {

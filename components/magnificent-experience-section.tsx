@@ -123,7 +123,7 @@ export default function MagnificentExperienceSection(): JSX.Element {
     
     // Backendden gelen göreceli yolu tam URL'ye dönüştür
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    return `${apiBaseUrl.replace('/api', '')}${imagePath}`;
+    return `https://api.villasantalya.com/${imagePath}`;
   };
 
   // Fiyat formatlama fonksiyonu

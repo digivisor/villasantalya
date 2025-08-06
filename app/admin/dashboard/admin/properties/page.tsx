@@ -378,7 +378,7 @@ export default function AdminPropertiesPage() {
   const formatImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder.svg";
     if (imagePath.startsWith('http')) return imagePath;
-    return `${apiBaseUrl.replace('/api', '')}${imagePath}`;
+    return `https://api.villasantalya.com${imagePath}`;
   };
 
   if (isLoading) {

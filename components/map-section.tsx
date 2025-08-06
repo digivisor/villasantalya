@@ -73,7 +73,7 @@ export default function MapSection() {
     if (!path) return "/placeholder-property.jpg"
     if (path.startsWith('http')) return path
     const base = process.env.NEXT_PUBLIC_API_URL
-    return base ? `${base.replace('/api', '')}${path}` : path
+    return base ? `https://api.villasantalya.com${path}` : path
   }
 
   const handlePropertyClick = (property: MapProperty) => {
