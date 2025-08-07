@@ -429,8 +429,8 @@
       };
       
       // Sayısal alanları düzelt
-      if (req.body.price) updatedData.price = Number(req.body.price);
-      if (req.body.bedrooms) updatedData.bedrooms = Number(req.body.bedrooms);
+      // if (req.body.price) updatedData.price = Number(req.body.price);
+      // if (req.body.bedrooms) updatedData.bedrooms = Number(req.body.bedrooms);
       if (req.body.bathrooms) updatedData.bathrooms = Number(req.body.bathrooms);
       if (req.body.area) updatedData.area = Number(req.body.area);
       if (req.body.buildingAge) updatedData.buildingAge = Number(req.body.buildingAge);

@@ -20,6 +20,7 @@ import { useParams, useRouter } from 'next/navigation'
 import ScrollToTop from "@/components/scroll-to-top"
 import Footer from "@/components/footer"
 import Header from "@/components/Header"
+import ReactMarkdown from 'react-markdown'
 
 interface BlogPost {
   _id: string
@@ -196,8 +197,8 @@ const formatToDayMonthYear = (isoString: string): string => {
               <article className="bg-white rounded-xl md:rounded-3xl p-4 md:p-8 shadow-md">
                 {/* Content */}
                 <div className="prose max-w-none text-sm md:text-base">
-                  {renderContent(post.content || '')}
-                </div>
+  <ReactMarkdown>{post.content || ''}</ReactMarkdown>
+</div>
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-100">
                   {post.tags.map((tag, tagIndex) => (

@@ -312,7 +312,7 @@ const [formData, setFormData] = useState<PropertyFormData>({
     }
     
     // İsteği başlat
-    xhr.open('POST', 'http://localhost:5000/api/properties', true);
+    xhr.open('POST', 'https://api.villasantalya.com/api/properties', true);
     
     // Token ekle - hem yeni format (Authorization) hem eski format (x-auth-token)
     const token = localStorage.getItem('token');

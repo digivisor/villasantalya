@@ -2,6 +2,7 @@
 import api from './api';
 
 export interface User {
+  profile: string;
   role: string;
   id: string;
   name: string;

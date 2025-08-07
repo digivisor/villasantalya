@@ -213,7 +213,7 @@ export async function createProperty(propertyData: PropertyFormData, imageFiles:
       }
     }
     
-    console.log('Token:', token.substring(0, 10) + '...');
+    // console.log('Token:', token.substring(0, 10) + '...');
     
     // Basitleştirilmiş fetch API kullanımı
     const response = await fetch(`${API_URL}/properties`, {
@@ -238,6 +238,49 @@ export async function createProperty(propertyData: PropertyFormData, imageFiles:
     throw error;
   }
 }
+// İlan güncelleme
+export async function updateProperty(id: string, propertyData: PropertyFormData) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Oturum bilginiz bulunamadı. Lütfen tekrar giriş yapın.');
+
+    const response = await fetch(`${API_URL}/properties/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-auth-token': token
+      },
+      body: JSON.stringify(propertyData)
+    });
+    if (!response.ok) throw new Error('Güncelleme başarısız!');
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating property:', error);
+    throw error;
+  }
+}
+
+// İlan silme
+export async function deleteProperty(id: string) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Oturum bilginiz bulunamadı. Lütfen tekrar giriş yapın.');
+
+    const response = await fetch(`${API_URL}/properties/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'x-auth-token': token
+      }
+    });
+    if (!response.ok) throw new Error('Silme başarısız!');
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    throw error;
+  }
+}
 // Service nesnesini export et
 const propertyService = {
   getPropertyBySlug,
@@ -247,7 +290,9 @@ const propertyService = {
   createProperty,
    getPendingProperties, // Yeni fonksiyon eklendi
   approveProperty,      // Onaylama fonksiyonu ekleyin
-  rejectProperty        // Reddetme fonksiyonu ekleyin
+  rejectProperty  ,      // Reddetme fonksiyonu ekleyin
+  updateProperty,
+  deleteProperty,
 };
 
 export default propertyService;

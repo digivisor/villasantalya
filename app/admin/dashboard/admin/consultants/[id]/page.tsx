@@ -75,7 +75,7 @@ export default function ConsultantProfilePage() {
     ? process.env.NEXT_PUBLIC_API_URL.includes('/api')
       ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0]
       : process.env.NEXT_PUBLIC_API_URL
-    : 'http://localhost:5000';
+    : 'http://:5000';
 
   // Resim URL'si formatlama
   const formatImageUrl = (imagePath?: string) => {

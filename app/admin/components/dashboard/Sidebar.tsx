@@ -98,7 +98,7 @@ export default function Sidebar() {
     },
     {
       label: 'İlan Ekle',
-      href: '/admin/dashboard/consultant/add-property',
+      href: '/admin/dashboard/admin/add-property',
       icon: Plus,
       consultantOnly: true
     },
@@ -110,11 +110,17 @@ export default function Sidebar() {
     },
     {
       label: 'Ayarlar',
-      href: user.isAdmin ? '/admin/dashboard/admin/settings' : '/admin/dashboard/consultant/settings',
-      icon: Settings
+      href:  '/admin/dashboard/admin/settings' ,
+      icon: Settings,
+         adminOnly: true
     }
   ];
-
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath.startsWith('http')) {
+    return `https://api.villasantalya.com${imagePath}`;
+  }
+  return imagePath;
+}
   // Kullanıcı rolüne göre filtreleme
   const filteredNavItems = navItems.filter(item => {
     // Sadece admin için öğeler
@@ -162,9 +168,15 @@ export default function Sidebar() {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-white">
+                  {/* <span className="text-sm font-semibold text-white">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
-                  </span>
+                  </span> */}
+                 <img
+                        src={getImageUrl(user.image) || '/default-avatar.png'}
+                        alt={`Kullanıcı Avatarı ${user.name || 'Kullanıcı'}`}
+                        style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                      />
+
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{user.name || 'Kullanıcı'}</p>

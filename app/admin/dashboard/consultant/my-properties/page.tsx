@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { 
   Building2, 
@@ -12,7 +12,6 @@ import {
   MapPin,
   Calendar,
   Filter,
-  DollarSign,
   Loader
 } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +19,8 @@ import { useToast } from '../../../components/ui/toast-context';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import propertyService from '../../../../services/property.service';
+import propertyService, { PropertyFormData } from '../../../../services/property.service';
+import PropertyEditModal from '../../../components/admin/PropertyEditModal';
 
 // PropertyType, backend'den dönen property tipine göre tanımlanmıştır
 type PropertyType = {
@@ -55,6 +55,21 @@ type PropertyType = {
   nearbyPlaces: string[];
   views?: number;
   currency?: string;
+  // Opsiyonel:
+  category?: string;
+  buildingAge?: number;
+  floor?: number;
+  totalFloors?: number;
+  furnished?: boolean;
+  balcony?: boolean;
+  parking?: boolean;
+  elevator?: boolean;
+  security?: boolean;
+  garden?: boolean;
+  location?: {
+    lat: string;
+    lng: string;
+  };
 };
 
 export default function MyPropertiesPage() {
@@ -66,48 +81,42 @@ export default function MyPropertiesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
-  // API URL'si - resimler için
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL 
-    ? process.env.NEXT_PUBLIC_API_URL.includes('/api')
-      ? process.env.NEXT_PUBLIC_API_URL.split('/api')[0]
-      : process.env.NEXT_PUBLIC_API_URL
-    : 'http://localhost:5000';
-  
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editProperty, setEditProperty] = useState<PropertyFormData | null>(null);
+
   // Resim URL'si formatlama
   const formatImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-property.jpg";
     if (imagePath.startsWith('http')) return imagePath;
-     return `https://api.villasantalya.com${imagePath}`;
+    return `https://api.villasantalya.com${imagePath}`;
   };
 
-  useEffect(() => {
-    // Backend'den danışmanın kendi ilanlarını getir
-    const fetchProperties = async () => {
-      try {
-        setIsLoading(true);
-        const response = await propertyService.getMyProperties();
-        
-        if (response && response.properties) {
-          setProperties(response.properties);
-        } else {
-          setProperties([]);
-        }
-      } catch (error: any) {
-        console.error('İlanlar yüklenirken hata oluştu:', error);
-        toast({
-          title: "Hata",
-          description: error.message || "İlanlar yüklenemedi.",
-          variant: "destructive"
-        });
+  // fetchProperties fonksiyonu useEffect dışında tanımlanmalı!
+  const fetchProperties = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await propertyService.getMyProperties();
+      if (response && response.properties) {
+        setProperties(response.properties);
+      } else {
         setProperties([]);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchProperties();
+    } catch (error: any) {
+      console.error('İlanlar yüklenirken hata oluştu:', error);
+      toast({
+        title: "Hata",
+        description: error.message || "İlanlar yüklenemedi.",
+        variant: "destructive"
+      });
+      setProperties([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [toast]);
+
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = 
@@ -124,14 +133,88 @@ export default function MyPropertiesPage() {
   });
 
   const handleViewProperty = (slug: string) => {
-    // Eğer slug varsa detay sayfasına yönlendir
     if (slug) {
       window.open(`/emlaklistesi/${slug}`, '_blank');
     }
   };
 
+  // DÜZENLEME MODALINI AÇ
   const handleEditProperty = (id: string) => {
-    router.push(`/admin/dashboard/properties/edit/${id}`);
+    const prop = properties.find(p => p._id === id);
+    if (!prop) return;
+    // PropertyType -> PropertyFormData mapping
+    const formData: PropertyFormData = {
+      title: prop.title || '',
+      description: prop.description || '',
+      price: prop.price !== undefined && prop.price !== null ? String(prop.price) : '',
+      currency: prop.currency as 'TRY' | 'USD' | 'EUR' || 'TRY',
+      discountedPrice: prop.discountedPrice !== undefined && prop.discountedPrice !== null ? String(prop.discountedPrice) : '',
+      propertyType: prop.propertyType || '',
+      category: prop.category || '',
+      type: prop.type || 'sale',
+      bedrooms: prop.bedrooms !== undefined && prop.bedrooms !== null ? String(prop.bedrooms) : '',
+      bathrooms: prop.bathrooms !== undefined && prop.bathrooms !== null ? String(prop.bathrooms) : '',
+      area: prop.area !== undefined && prop.area !== null ? String(prop.area) : '',
+      buildingAge: prop.buildingAge !== undefined && prop.buildingAge !== null ? String(prop.buildingAge) : '',
+      floor: prop.floor !== undefined && prop.floor !== null ? String(prop.floor) : '',
+      totalFloors: prop.totalFloors !== undefined && prop.totalFloors !== null ? String(prop.totalFloors) : '',
+      furnished: prop.furnished ?? false,
+      balcony: prop.balcony ?? false,
+      parking: prop.parking ?? false,
+      elevator: prop.elevator ?? false,
+      security: prop.security ?? false,
+      garden: prop.garden ?? false,
+      address: prop.address || '',
+      district: prop.district || '',
+      city: prop.city || '',
+      location: prop.location || { lat: '', lng: '' },
+      features: prop.features || [],
+      nearbyPlaces: prop.nearbyPlaces || [],
+    };
+    setEditProperty(formData);
+    setEditModalOpen(true);
+  };
+
+  // Modal kapandığında:
+  const handleEditModalClose = () => {
+    setEditModalOpen(false);
+    setEditProperty(null);
+  };
+
+  // Modal kayıt olduğunda:
+  const handleEditModalSave = async (formData: PropertyFormData) => {
+    try {
+      // İlgili property'nin _id'sini bulmak için:
+      const prop = properties.find(p =>
+        p.title === formData.title &&
+        p.address === formData.address &&
+        p.district === formData.district
+      );
+      // Yedek olarak editProperty'nin title'ı ile bulup _id ile güncelleyebilirsin.
+      const id = prop?._id;
+      if (!id) {
+        toast({
+          title: "Hata",
+          description: "Güncellenecek ilan bulunamadı.",
+          variant: "destructive"
+        });
+        return;
+      }
+      await propertyService.updateProperty(id, formData);
+      toast({
+        title: "Başarılı",
+        description: "İlan başarıyla güncellendi."
+      });
+      setEditModalOpen(false);
+      setEditProperty(null);
+      fetchProperties();
+    } catch (error: any) {
+      toast({
+        title: "Hata",
+        description: error.message || "İlan güncellenemedi.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteProperty = (id: string) => {
@@ -143,13 +226,11 @@ export default function MyPropertiesPage() {
     if (deleteId) {
       try {
         await propertyService.deleteProperty(deleteId);
-        
         setProperties(properties.filter(p => p._id !== deleteId));
         toast({
           title: "Başarılı",
           description: "İlan başarıyla silindi.",
         });
-        
       } catch (error: any) {
         toast({
           title: "Hata",
@@ -310,7 +391,6 @@ export default function MyPropertiesPage() {
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center text-orange-500">
-            
                     <span className="font-semibold">
                       {property.price.toLocaleString()} {property.currency || 'TRY'}
                     </span>
@@ -364,7 +444,7 @@ export default function MyPropertiesPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">İlan bulunamadı</h3>
             <p className="text-gray-600 mb-4">Arama kriterleriyle eşleşen ilan bulunamadı.</p>
             <Link
-            href="/admin/dashboard/admin/add-property"
+              href="/admin/dashboard/admin/add-property"
               className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -373,7 +453,12 @@ export default function MyPropertiesPage() {
           </div>
         )}
       </div>
-
+      <PropertyEditModal
+        property={editProperty}
+        isOpen={editModalOpen}
+        onClose={handleEditModalClose}
+        onSave={handleEditModalSave}
+      />
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
