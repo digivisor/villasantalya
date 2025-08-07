@@ -1,19 +1,16 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { 
   MessageSquare, 
-  Search, 
-  Filter,
+  Search,
   Star,
-  Calendar,
-  User,
   Building2,
   Mail,
   Phone
 } from 'lucide-react';
 import { getAllCommentsWithProperty } from '../../../../services/comment.service';
+import { getAllContactMessages } from '../../../../services/contact.service';
 
 type Comment = {
   _id: string;
@@ -26,36 +23,58 @@ type Comment = {
   email?: string;
   phone?: string;
   message: string;
-  rating?: number; // opsiyonel, istersen kaldır
+  rating?: number;
+  createdAt: string;
+};
+
+type ContactMessage = {
+  _id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  subject?: string;
+  message: string;
   createdAt: string;
 };
 
 export default function AdminCommentsPage() {
-  const [tab, setTab] = useState<'comments'|'contact'>('comments');
+  const [tab, setTab] = useState<'comments' | 'contact'>('comments');
   const [comments, setComments] = useState<Comment[]>([]);
+  const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-  if (tab === 'comments') {
+  // Yorumları veya iletişim mesajlarını yükle
+  useEffect(() => {
     setIsLoading(true);
-    getAllCommentsWithProperty()
-      .then(data => {
-        const arr = Array.isArray(data) ? data : (data.comments || []);
-        // Burada sıralama işlemini yapıyoruz:
-        arr.sort((  a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setComments(arr);
-      })
-      .catch(() => setComments([]))
-      .finally(() => setIsLoading(false));
-  }
-}, [tab]);
+    if (tab === 'comments') {
+      getAllCommentsWithProperty()
+        .then(data => {
+          const arr = Array.isArray(data) ? data : (data.comments || []);
+          arr.sort((a: { createdAt: string | number | Date; }, b: { createdAt: string | number | Date; }) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setComments(arr);
+        })
+        .catch(() => setComments([]))
+        .finally(() => setIsLoading(false));
+    }
+    if (tab === 'contact') {
+      getAllContactMessages()
+        .then(data => {
+          const arr = Array.isArray(data) ? data : [];
+          arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setContactMessages(arr);
+        })
+        .catch(() => setContactMessages([]))
+        .finally(() => setIsLoading(false));
+    }
+  }, [tab]);
 
+  // Yorumlar için arama
   const filteredComments = comments.filter(comment => {
     const title = comment.property?.title || '';
     const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         comment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         comment.message.toLowerCase().includes(searchTerm.toLowerCase());
+      comment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      comment.message.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
@@ -66,9 +85,7 @@ useEffect(() => {
         {Array.from({ length: 5 }, (_, i) => (
           <Star
             key={i}
-            className={`h-4 w-4 ${
-              i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-            }`}
+            className={`h-4 w-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
           />
         ))}
       </div>
@@ -81,27 +98,25 @@ useEffect(() => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Yorumlar</h1>
-          <p className="text-gray-600 mt-1">Kullanıcı yorumlarını görüntüleyin</p>
+          <p className="text-gray-600 mt-1">Kullanıcı yorumlarını ve iletişim mesajlarını görüntüleyin</p>
         </div>
 
         {/* Tabs */}
         <div className="flex space-x-2 border-b mb-4">
           <button
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${
-              tab === "comments"
-                ? "border-orange-500 text-orange-600 bg-orange-50"
-                : "border-transparent text-gray-700 hover:text-orange-500"
-            }`}
+            className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${tab === "comments"
+              ? "border-orange-500 text-orange-600 bg-orange-50"
+              : "border-transparent text-gray-700 hover:text-orange-500"
+              }`}
             onClick={() => setTab('comments')}
           >
             İlan Yorumları
           </button>
           <button
-            className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${
-              tab === "contact"
-                ? "border-orange-500 text-orange-600 bg-orange-50"
-                : "border-transparent text-gray-700 hover:text-orange-500"
-            }`}
+            className={`px-4 py-2 font-semibold text-sm border-b-2 transition ${tab === "contact"
+              ? "border-orange-500 text-orange-600 bg-orange-50"
+              : "border-transparent text-gray-700 hover:text-orange-500"
+              }`}
             onClick={() => setTab('contact')}
           >
             İletişim Formu
@@ -192,9 +207,64 @@ useEffect(() => {
         )}
 
         {tab === 'contact' && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-24 flex flex-col items-center justify-center min-h-[300px]">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">İletişim Formu Mesajları</h2>
-            <p className="text-gray-600">Bu alanı yakında ekleyeceksiniz.</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 min-h-[300px]">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">İletişim Formu Mesajları</h2>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+              </div>
+            ) : contactMessages.length === 0 ? (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Mesaj bulunamadı</h3>
+                <p className="text-gray-600">Henüz iletişim formu mesajı gelmemiş.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {contactMessages.map((msg) => (
+                  <div key={msg._id} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2">
+                      <div className="flex items-center space-x-3 mb-2 md:mb-0">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-blue-400 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-white">
+                            {msg.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{msg.name}</h3>
+                          <div className="flex items-center text-sm text-gray-500">
+                            {msg.email && (
+                              <span className="mr-2 flex items-center">
+                                <Mail className="h-4 w-4 mr-1" />
+                                {msg.email}
+                              </span>
+                            )}
+                            {msg.phone && (
+                              <span className="mr-2 flex items-center">
+                                <Phone className="h-4 w-4 mr-1" />
+                                {msg.phone}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {new Date(msg.createdAt).toLocaleString('tr-TR')}
+                      </span>
+                    </div>
+                    {msg.subject && (
+                      <div className="mb-2">
+                        <span className="text-xs text-gray-700 font-semibold">Konu: </span>
+                        <span className="text-xs text-gray-700">{msg.subject}</span>
+                      </div>
+                    )}
+                    <div className="bg-white rounded p-4 text-gray-700">
+                      {msg.message}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

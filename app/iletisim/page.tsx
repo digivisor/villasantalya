@@ -26,6 +26,8 @@ import Link from "next/link"
 import ScrollToTop from "@/components/scroll-to-top"
 import Footer from "@/components/footer"
 import Header from "@/components/Header"
+import { sendContactMessage } from "../services/contact.service";
+
 
 import { 
   getContactInfo, 
@@ -41,7 +43,10 @@ export default function ContactPage() {
     phone: "",
     subject: "",
     message: "",
-  })
+  });
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Dinamik API'den gelen state'ler
@@ -91,11 +96,30 @@ export default function ContactPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Form submitted:", formData)
-    // Form submission logic here
-  }
+
+
+const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessMessage("");
+    setErrorMessage("");
+    setIsLoading(true);
+    try {
+      await sendContactMessage(formData);
+      setSuccessMessage("Mesajınız başarıyla gönderildi. En kısa sürede size dönüş yapılacaktır.");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Mesaj gönderilemedi. Lütfen tekrar deneyin.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   // Mobil menüyü aç/kapat
   const toggleMobileMenu = () => {
@@ -273,15 +297,26 @@ export default function ContactPage() {
                     required
                   />
                 </div>
+ {successMessage && (
+        <div className="p-3 mb-3 rounded bg-green-100 text-green-800 border border-green-300 text-sm">
+          {successMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div className="p-3 mb-3 rounded bg-red-100 text-red-800 border border-red-300 text-sm">
+          {errorMessage}
+        </div>
+      )}
 
-                <Button
-                  type="submit"
-                  className="w-full h-12 md:h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-lg md:rounded-xl text-base md:text-lg font-semibold"
-                >
-                  <Send className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                  Mesajı Gönder
-                </Button>
-              </form>
+      <button
+        type="submit"
+        className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-base font-semibold"
+        disabled={isLoading}
+      >
+        {isLoading ? "Gönderiliyor..." : "Mesajı Gönder"}
+      </button>
+    </form>
+  
             </div>
 
             {/* Map & Additional Info */}

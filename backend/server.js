@@ -110,7 +110,13 @@ try {
 } catch (error) {
   console.error('Error loading comment routes:', error);
 }
-
+try {
+  const contactRoutes = require('./src/routes/contact.routes');
+  app.use('/api/contact', contactRoutes);
+  console.log('Contact routes loaded');
+} catch (error) {
+  console.error('Error loading contact routes:', error);
+}
 
 // Base route
 app.get('/', (req, res) => {
