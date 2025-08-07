@@ -31,25 +31,31 @@ export default function MapSection() {
         setLoading(true)
         const response = await propertyService.getAllProperties({ limit: 20, hasLocation: true })
         if (response?.properties && Array.isArray(response.properties)) {
-          const mapped = response.properties
-            .filter(p => p.location && ((p.location.coordinates?.length === 2) || (p.location.lat && p.location.lng)))
-            .map(p => {
-              const coords = p.location.coordinates
-              const lat = coords?.[1] ?? Number(p.location.lat)
-              const lng = coords?.[0] ?? Number(p.location.lng)
-              return {
-                id: p._id,
-                name: p.title,
-                address: p.address ? `${p.address}, ${p.district || ''}, ${p.city || ''}` : `${p.district || ''}, ${p.city || ''}`,
-                area: `${p.area} m²`,
-                beds: `${p.bedrooms || p.beds || 0} Oda`,
-                baths: `${p.bathrooms || p.baths || 0} Banyo`,
-                image: formatImageUrl(p.mainImage),
-                lat,
-                lng,
-                slug: p.slug,
-              }
-            })
+          // YALNIZCA status === "active" ve isApproved === true olanlar
+          const filtered = response.properties.filter(
+            (p) => 
+              p.status === "active" && 
+              (p.isApproved === true || p.isApproved === "true") && 
+              p.location && 
+              ((p.location.coordinates?.length === 2) || (p.location.lat && p.location.lng))
+          )
+          const mapped = filtered.map(p => {
+            const coords = p.location.coordinates
+            const lat = coords?.[1] ?? Number(p.location.lat)
+            const lng = coords?.[0] ?? Number(p.location.lng)
+            return {
+              id: p._id,
+              name: p.title,
+              address: p.address ? `${p.address}, ${p.district || ''}, ${p.city || ''}` : `${p.district || ''}, ${p.city || ''}`,
+              area: `${p.area} m²`,
+              beds: `${p.bedrooms || p.beds || 0} Oda`,
+              baths: `${p.bathrooms || p.baths || 0} Banyo`,
+              image: formatImageUrl(p.mainImage),
+              lat,
+              lng,
+              slug: p.slug,
+            }
+          })
           setAllMapProperties(mapped)
           setDisplayProperties(mapped.slice(0, 4))
         } else {

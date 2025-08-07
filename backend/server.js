@@ -95,6 +95,15 @@ try {
 } catch (error) {
   console.error('Error loading setting routes:', error);
 }
+  
+try {
+  const blogRoutes = require('./src/routes/blog.routes');
+  app.use('/api/blogs', blogRoutes);
+  console.log('Blog routes loaded');
+} catch (error) {
+  console.error('Error loading blog routes:', error);
+}
+
 
 // Base route
 app.get('/', (req, res) => {

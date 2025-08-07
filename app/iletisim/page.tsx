@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
@@ -27,43 +27,12 @@ import ScrollToTop from "@/components/scroll-to-top"
 import Footer from "@/components/footer"
 import Header from "@/components/Header"
 
-const contactInfo = [
-  {
-    icon: Phone,
-    title: "Telefon",
-    info: "+90 551 389 52 55",
-    description: "7/24 ulaşabilirsiniz",
-    color: "bg-blue-100 text-blue-600",
-  },
-  {
-    icon: Mail,
-    title: "E-posta",
-    info: "info@villasantalya.com",
-    description: "Size 24 saat içinde dönüş yapacağız",
-    color: "bg-green-100 text-green-600",
-  },
-  {
-    icon: MapPin,
-    title: "Adres",
-    info: "Lara, Muratpaşa Antalya",
-    description: "Ofisimizi ziyaret edebilirsiniz",
-    color: "bg-orange-100 text-orange-600",
-  },
-  {
-    icon: Clock,
-    title: "Çalışma Saatleri",
-    info: "Pzt - Cmt: 09:00 - 21:00",
-    description: "Hafta sonu randevu ile",
-    color: "bg-purple-100 text-purple-600",
-  },
-]
-
-const socialLinks = [
-  { icon: Facebook, name: "Facebook", url: "#", color: "hover:text-blue-600" },
-  { icon: Instagram, name: "Instagram", url: "#", color: "hover:text-pink-600" },
-  { icon: Twitter, name: "Twitter", url: "#", color: "hover:text-blue-400" },
-  { icon: Youtube, name: "YouTube", url: "#", color: "hover:text-red-600" },
-]
+import { 
+  getContactInfo, 
+  getSocialLinks,
+  getWorkingHours,
+  type WorkingHours
+} from '../services/settings.service';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -74,6 +43,45 @@ export default function ContactPage() {
     message: "",
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Dinamik API'den gelen state'ler
+  const [contactInfo, setContactInfo] = useState({
+    address: "",
+    phone: "",
+    email: ""
+  });
+  const [socialLinks, setSocialLinks] = useState({
+    facebook: "",
+    instagram: "",
+    twitter: "",
+    youtube: "",
+    linkedin: ""
+  });
+  const [workingHours, setWorkingHours] = useState<WorkingHours>({
+    weekday: { start: '', end: '' },
+    saturday: { start: '', end: '' },
+    sunday: { isOpen: false, start: '', end: '' }
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+        // API'den verileri çek
+        const [contactData, socialData, hoursData] = await Promise.all([
+          getContactInfo(token),
+          getSocialLinks(token),
+          getWorkingHours(token)
+        ]);
+        setContactInfo(contactData);
+        setSocialLinks(socialData);
+        setWorkingHours(hoursData);
+      } catch (error) {
+        console.error("İletişim sayfası verileri yüklenemedi:", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -93,6 +101,48 @@ export default function ContactPage() {
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
+
+  // Dinamik iletişim kartları - API verilerini karta çevir
+  const contactCards = [
+    {
+      icon: Phone,
+      title: "Telefon",
+      info: contactInfo.phone,
+      description: "7/24 ulaşabilirsiniz",
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      icon: Mail,
+      title: "E-posta",
+      info: contactInfo.email,
+      description: "Size 24 saat içinde dönüş yapacağız",
+      color: "bg-green-100 text-green-600",
+    },
+    {
+      icon: MapPin,
+      title: "Adres",
+      info: contactInfo.address,
+      description: "Ofisimizi ziyaret edebilirsiniz",
+      color: "bg-orange-100 text-orange-600",
+    },
+    {
+      icon: Clock,
+      title: "Çalışma Saatleri",
+      info: `Pzt-Cmt: ${workingHours.weekday.start} - ${workingHours.weekday.end}`,
+      description: workingHours.sunday.isOpen
+        ? `Pazar: ${workingHours.sunday.start} - ${workingHours.sunday.end}`
+        : "Pazar: Kapalı",
+      color: "bg-purple-100 text-purple-600",
+    },
+  ];
+
+  // Dinamik sosyal medya linkleri
+  const socialIconData = [
+    { icon: Facebook, name: "Facebook", url: socialLinks.facebook, color: "hover:text-blue-600" },
+    { icon: Instagram, name: "Instagram", url: socialLinks.instagram, color: "hover:text-pink-600" },
+    { icon: Twitter, name: "Twitter", url: socialLinks.twitter, color: "hover:text-blue-400" },
+    { icon: Youtube, name: "YouTube", url: socialLinks.youtube, color: "hover:text-red-600" },
+  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -129,7 +179,7 @@ export default function ContactPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 mb-8 md:mb-16">
-            {contactInfo.map((item, index) => (
+            {contactCards.map((item, index) => (
               <div
                 key={index}
                 className="bg-white rounded-xl md:rounded-3xl p-6 md:p-8 shadow-md md:shadow-lg hover:shadow-xl transition-all duration-300 text-center group hover:scale-105"
@@ -256,36 +306,66 @@ export default function ContactPage() {
               {/* Quick Actions */}
               <div className="bg-gray-50 rounded-xl md:rounded-3xl p-6 md:p-8">
                 <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Hızlı İletişim</h3>
-                <div className="space-y-3 md:space-y-4">
-                  <Button className="w-full h-12 md:h-14 bg-green-500 hover:bg-green-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start">
-                    <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
-                    <span className="truncate">WhatsApp ile Mesaj Gönder</span>
-                  </Button>
-                  <Button className="w-full h-12 md:h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start">
-                    <PhoneCall className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
-                    <span className="truncate">Hemen Ara: +90 551 389 52 55</span>
-                  </Button>
-                  <Button className="w-full h-12 md:h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start">
-                    <Calendar className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
-                    <span className="truncate">Randevu Al</span>
-                  </Button>
-                </div>
+<div className="space-y-3 md:space-y-4">
+  {/* WhatsApp ile Mesaj Gönder */}
+  <Button
+    className="w-full h-12 md:h-14 bg-green-500 hover:bg-green-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start"
+    asChild
+  >
+    <a
+      href={`https://wa.me/${contactInfo.phone.replace(/[^0-9]/g, "")}`}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <MessageCircle className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+      <span className="truncate">WhatsApp ile Mesaj Gönder</span>
+    </a>
+  </Button>
+
+  {/* Hemen Ara */}
+  <Button
+    className="w-full h-12 md:h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start"
+    asChild
+  >
+    <a href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, "")}`}>
+      <PhoneCall className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+      <span className="truncate">Hemen Ara: {contactInfo.phone}</span>
+    </a>
+  </Button>
+
+  {/* Randevu Al (Arama başlatır) */}
+  <Button
+    className="w-full h-12 md:h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-lg md:rounded-xl text-sm md:text-base lg:text-lg font-semibold justify-start"
+    asChild
+  >
+    <a href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, "")}`}>
+      <Calendar className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+      <span className="truncate">Randevu Al</span>
+    </a>
+  </Button>
+</div>
+
+
               </div>
 
               {/* Social Media */}
               <div className="bg-gray-50 rounded-xl md:rounded-3xl p-6 md:p-8">
                 <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Sosyal Medya</h3>
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  {socialLinks.map((social, index) => (
-                    <a
-                      key={index}
-                      href={social.url}
-                      className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 bg-white rounded-lg md:rounded-xl hover:shadow-md transition-all duration-300 ${social.color}`}
-                    >
-                      <social.icon className="w-5 h-5 md:w-6 md:h-6" />
-                      <span className="font-semibold text-sm md:text-base">{social.name}</span>
-                    </a>
-                  ))}
+                  {socialIconData.map((social, index) =>
+                    social.url && (
+                      <a
+                        key={index}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 bg-white rounded-lg md:rounded-xl hover:shadow-md transition-all duration-300 ${social.color}`}
+                      >
+                        <social.icon className="w-5 h-5 md:w-6 md:h-6" />
+                        <span className="font-semibold text-sm md:text-base">{social.name}</span>
+                      </a>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -300,19 +380,30 @@ export default function ContactPage() {
           <p className="text-base md:text-lg lg:text-xl text-orange-100 mb-6 md:mb-8 leading-relaxed">
             Uzman ekibimiz size en uygun villa seçeneklerini sunmak için hazır. Ücretsiz danışmanlık hizmeti alın.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-white text-orange-500 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 text-base md:text-lg font-semibold rounded-lg md:rounded-xl">
-              <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              Hemen Ara
-            </Button>
-            <Button
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-orange-500 px-6 md:px-8 py-2 md:py-3 text-base md:text-lg font-semibold bg-transparent rounded-lg md:rounded-xl"
-            >
-              <Mail className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              E-posta Gönder
-            </Button>
-          </div>
+<div className="flex flex-col sm:flex-row gap-4 justify-center">
+  {/* Hemen Ara */}
+  <Button
+    className="bg-white text-orange-500 hover:bg-gray-100 px-6 md:px-8 py-2 md:py-3 text-base md:text-lg font-semibold rounded-lg md:rounded-xl"
+    asChild
+  >
+    <a href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, "")}`}>
+      <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+      Hemen Ara
+    </a>
+  </Button>
+
+  {/* E-posta Gönder */}
+  <Button
+    variant="outline"
+    className="border-white text-white hover:bg-white hover:text-orange-500 px-6 md:px-8 py-2 md:py-3 text-base md:text-lg font-semibold bg-transparent rounded-lg md:rounded-xl"
+    asChild
+  >
+    <a href={`mailto:${contactInfo.email}`}>
+      <Mail className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+      E-posta Gönder
+    </a>
+  </Button>
+</div>
         </div>
       </section>
 

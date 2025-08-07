@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   MapPin,
@@ -23,6 +23,11 @@ import ScrollToTop from "@/components/scroll-to-top"
 import Footer from "@/components/footer"
 import Link from "next/link"
 import Header from "@/components/Header"
+
+import {
+  getContactInfo,
+  getYoutubeVideoId,
+} from "../services/settings.service"
 
 const requirements = [
   {
@@ -149,12 +154,57 @@ const stats = [
   },
 ]
 
+// Basit Modal
+function VideoModal({ videoId, open, onClose }: { videoId: string; open: boolean; onClose: () => void }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+      <div className="relative w-full max-w-2xl bg-black rounded-lg shadow-lg">
+        <button
+          onClick={onClose}
+          className="absolute -top-6 right-0 bg-white hover:bg-orange-500 text-gray-900 hover:text-white rounded-full p-2 shadow"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <div className="aspect-w-16 aspect-h-9 w-full">
+          <iframe
+            title="Tanıtım Videosu"
+            width="100%"
+            height="400"
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            className="rounded-lg"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AboutPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [contactInfo, setContactInfo] = useState({ phone: "" })
+  const [youtubeVideoId, setYoutubeVideoId] = useState("")
+  const [videoOpen, setVideoOpen] = useState(false)
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen)
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : ""
+      try {
+        const contactData = await getContactInfo(token)
+        setContactInfo(contactData)
+      } catch (e) {}
+      try {
+        const yt = await getYoutubeVideoId(token)
+        setYoutubeVideoId(yt?.videoId || "")
+      } catch (e) {}
+    }
+    fetchData()
+  }, [])
+
+  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen)
 
   return (
     <div className="min-h-screen bg-white">
@@ -187,7 +237,6 @@ export default function AboutPage() {
           <div className="text-center mb-12 md:mb-16">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 md:mb-8">Mülkiyet Gereksinimi</h2>
           </div>
-
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-8">
             {requirements.map((requirement, index) => (
               <div key={index} className="text-center group cursor-pointer">
@@ -211,7 +260,6 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 md:mb-16">
             <div className="text-orange-500 text-sm font-semibold mb-4 tracking-wider uppercase">SÜRECİMİZ</div>
-
             {/* Desktop Title */}
             <h2 className="hidden md:block text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-8 max-w-4xl mx-auto">
               Tüm Ayrıcalıklarıyla Lüks{" "}
@@ -244,7 +292,11 @@ export default function AboutPage() {
                     <div className="w-10 h-10 bg-orange-300 rounded-full border-2 border-white hover:scale-110 transition-transform duration-300 cursor-pointer shadow-md"></div>
                     <div className="w-10 h-10 bg-orange-400 rounded-full border-2 border-white hover:scale-110 transition-transform duration-300 cursor-pointer shadow-md"></div>
                   </div>
-                  <button className="w-14 h-14 bg-white hover:bg-orange-500 rounded-full text-orange-500 hover:text-white cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center group">
+                  {/* Play Button */}
+                  <button
+                    className="w-14 h-14 bg-white hover:bg-orange-500 rounded-full text-orange-500 hover:text-white cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center group"
+                    onClick={() => setVideoOpen(true)}
+                  >
                     <svg className="w-6 h-6 translate-x-0.5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                     </svg>
@@ -252,13 +304,11 @@ export default function AboutPage() {
                 </div>
               </span>
             </h2>
-
             {/* Mobile Title */}
             <div className="block md:hidden">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-6">
                 Tüm Ayrıcalıklarıyla Lüks Mülklerimize Hoş Geldiniz
               </h2>
-
               {/* Mobile Images */}
               <div className="flex justify-center items-center gap-4 mb-6">
                 <Image
@@ -276,7 +326,6 @@ export default function AboutPage() {
                   className="rounded-xl shadow-lg"
                 />
               </div>
-
               {/* Mobile Play Button and Avatars */}
               <div className="flex justify-center items-center gap-4">
                 <div className="flex -space-x-1">
@@ -284,7 +333,10 @@ export default function AboutPage() {
                   <div className="w-8 h-8 bg-orange-300 rounded-full border-2 border-white shadow-md"></div>
                   <div className="w-8 h-8 bg-orange-400 rounded-full border-2 border-white shadow-md"></div>
                 </div>
-                <button className="w-12 h-12 bg-white hover:bg-orange-500 rounded-full text-orange-500 hover:text-white cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center">
+                <button
+                  className="w-12 h-12 bg-white hover:bg-orange-500 rounded-full text-orange-500 hover:text-white cursor-pointer transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center"
+                  onClick={() => setVideoOpen(true)}
+                >
                   <svg className="w-5 h-5 translate-x-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                   </svg>
@@ -292,31 +344,25 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-
           {/* Timeline */}
           <div className="relative">
             {/* Timeline Line */}
             <div className="absolute top-8 left-0 right-0 h-1 bg-orange-500 hidden lg:block"></div>
-
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
               {processSteps.map((step, index) => (
                 <div key={index} className="relative group">
                   {/* Timeline Dot */}
                   <div className="absolute top-6 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-orange-500 rounded-full border-4 border-white shadow-lg hidden lg:block group-hover:scale-125 transition-transform duration-300"></div>
-
                   <div className="text-center pt-12 lg:pt-20">
                     <div className="text-orange-500 text-sm font-semibold mb-4 tracking-wider">{step.step}</div>
-
                     <div className="w-14 h-14 md:w-16 md:h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-500 group-hover:scale-110 transition-all duration-300 cursor-pointer">
                       <div className="text-orange-500 group-hover:text-white transition-colors duration-300">
                         {step.icon}
                       </div>
                     </div>
-
                     <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 group-hover:text-orange-500 transition-colors duration-300">
                       {step.title}
                     </h3>
-
                     {/* Description only on hover or for mobile always visible */}
                     <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 mt-4">
                       <p className="text-xs md:text-sm text-gray-600 leading-relaxed px-2 bg-white rounded-lg p-3 shadow-lg border-l-4 border-orange-500">
@@ -339,15 +385,11 @@ export default function AboutPage() {
             <div className="relative order-2 lg:order-1">
               <div className="relative h-64 md:h-80 lg:h-[500px] rounded-3xl overflow-hidden">
                 <Image src="/about-villa-image.jpg" alt="Lüks Villa" fill className="object-cover" />
-
-                {/* Decorative Shapes - Responsive */}
+                {/* Decorative Shapes */}
                 <div className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-16 h-20 md:w-24 md:h-32 bg-blue-200 rounded-[1.5rem] md:rounded-[2rem] opacity-60"></div>
                 <div className="absolute -bottom-3 -right-3 md:-bottom-6 md:-right-6 w-12 h-12 md:w-20 md:h-20 bg-blue-300 rounded-full opacity-60"></div>
               </div>
-
-        
-
-              {/* Team Avatars - Responsive */}
+              {/* Team Avatars */}
               <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-gray-800/80 rounded-full p-2 md:p-3 flex items-center space-x-2">
                 <div className="flex -space-x-2">
                   <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-200 rounded-full border-2 border-white"></div>
@@ -370,8 +412,7 @@ export default function AboutPage() {
                   Tüm Kolaylıklarla Donatılmış Lüks Tesislerimize Hoş Geldiniz.
                 </h2>
               </div>
-
-              {/* Stats - Responsive */}
+              {/* Stats */}
               <div className="grid grid-cols-3 gap-4 md:gap-8">
                 {stats.map((stat, index) => (
                   <div key={index} className="text-center">
@@ -383,33 +424,40 @@ export default function AboutPage() {
                   </div>
                 ))}
               </div>
-
-              {/* Action Buttons - Responsive */}
+              {/* Action Buttons */}
               <div className="flex flex-col gap-4">
                 <Link href="/emlaklistesi">
                   <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 md:px-8 py-3 md:py-4 text-base md:text-lg font-semibold rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
                     Emlakları Keşfedin
                   </Button>
                 </Link>
-
-                <div className="flex items-center space-x-3 md:space-x-4 bg-gray-900 hover:bg-gray-800 text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer">
+                <a
+                  href={contactInfo.phone ? `tel:${contactInfo.phone.replace(/[^0-9+]/g, "")}` : "#"}
+                  className="flex items-center space-x-3 md:space-x-4 bg-gray-900 hover:bg-gray-800 text-white px-4 md:px-6 py-3 md:py-4 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+                >
                   <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center">
                     <PhoneCall className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
                   <div>
                     <div className="text-sm font-semibold">Bizi Arayın</div>
-                    <div className="text-sm text-orange-400 font-semibold">+90 551 389 52 55</div>
+                    <div className="text-sm text-orange-400 font-semibold">{contactInfo.phone || "-"}</div>
                   </div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Modal for Youtube Video */}
+      <VideoModal
+        open={videoOpen && !!youtubeVideoId}
+        videoId={youtubeVideoId}
+        onClose={() => setVideoOpen(false)}
+      />
+
       {/* Footer */}
       <Footer />
-
       {/* Scroll to Top */}
       <ScrollToTop />
     </div>

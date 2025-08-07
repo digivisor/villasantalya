@@ -1,25 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '../../../../components/dashboard/DashboardLayout';
-import { 
-  ArrowLeft, 
-  Upload, 
-  Save, 
-  Plus, 
-  X,
-  User,
-  Bookmark,
-  FileText,
-  Calendar,
-  Tag as TagIcon
-} from 'lucide-react';
+import { ArrowLeft, Upload, Save, Plus, X, User, Calendar, Tag as TagIcon } from 'lucide-react';
 import Link from 'next/link';
 import Toast from '../../../../components/ui/toast';
 import Image from 'next/image';
+import { createBlog } from '../../../../../services/blog.service'; // <-- kendi servis dosyanın yolu
 
-// Önceden tanımlı kategoriler
+
 const predefinedCategories = [
   'Tasarım İpuçları',
   'Emlak Rehberi',
@@ -33,7 +23,6 @@ const predefinedCategories = [
   'Gayrimenkul Teknolojileri'
 ];
 
-// Blog oluşturma formu için veri tipi
 interface BlogFormData {
   title: string;
   excerpt: string;
@@ -52,19 +41,17 @@ export default function CreateBlogPage() {
     title: '',
     excerpt: '',
     content: '',
-    author: 'Fazıl Can Akbaş', // Varsayılan yazar
+    author: 'Fazıl Can Akbaş',
     category: '',
     tags: [],
     isActive: true,
     image: null
   });
-  
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [customCategory, setCustomCategory] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  
-  // Toast state
   const [toast, setToast] = useState({
     message: '',
     type: 'success' as 'success' | 'error' | 'warning' | 'info',
@@ -74,31 +61,12 @@ export default function CreateBlogPage() {
   // Hata kontrolü
   const validate = () => {
     const errors: Record<string, string> = {};
-    
-    if (!formData.title.trim()) {
-      errors.title = 'Başlık gereklidir';
-    }
-    
-    if (!formData.excerpt.trim()) {
-      errors.excerpt = 'Özet gereklidir';
-    }
-    
-    if (!formData.content.trim()) {
-      errors.content = 'İçerik gereklidir';
-    }
-    
-    if (!formData.category) {
-      errors.category = 'Kategori seçmelisiniz';
-    }
-    
-    if (!formData.image) {
-      errors.image = 'Blog görseli yüklemelisiniz';
-    }
-    
-    if (formData.tags.length === 0) {
-      errors.tags = 'En az bir etiket eklemelisiniz';
-    }
-    
+    if (!formData.title.trim()) errors.title = 'Başlık gereklidir';
+    if (!formData.excerpt.trim()) errors.excerpt = 'Özet gereklidir';
+    if (!formData.content.trim()) errors.content = 'İçerik gereklidir';
+    if (!formData.category) errors.category = 'Kategori seçmelisiniz';
+    if (!formData.image) errors.image = 'Blog görseli yüklemelisiniz';
+    if (formData.tags.length === 0) errors.tags = 'En az bir etiket eklemelisiniz';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -109,14 +77,9 @@ export default function CreateBlogPage() {
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
-    // Hata mesajını temizle
-    if (formErrors[name]) {
-      setFormErrors({ ...formErrors, [name]: '' });
-    }
+    if (formErrors[name]) setFormErrors({ ...formErrors, [name]: '' });
   };
 
-  // Toggle değişikliği
   const handleToggleChange = (name: string, checked: boolean) => {
     setFormData({ ...formData, [name]: checked });
   };
@@ -127,19 +90,12 @@ export default function CreateBlogPage() {
     if (file) {
       setFormData({ ...formData, image: file });
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
-      
-      // Hata mesajını temizle
-      if (formErrors.image) {
-        setFormErrors({ ...formErrors, image: '' });
-      }
+      if (formErrors.image) setFormErrors({ ...formErrors, image: '' });
     }
   };
 
-  // Tag ekleme
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       setFormData({
@@ -147,15 +103,10 @@ export default function CreateBlogPage() {
         tags: [...formData.tags, tagInput.trim()]
       });
       setTagInput('');
-      
-      // Hata mesajını temizle
-      if (formErrors.tags) {
-        setFormErrors({ ...formErrors, tags: '' });
-      }
+      if (formErrors.tags) setFormErrors({ ...formErrors, tags: '' });
     }
   };
 
-  // Enter tuşu ile tag ekleme
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -163,7 +114,6 @@ export default function CreateBlogPage() {
     }
   };
 
-  // Tag silme
   const handleRemoveTag = (tagToRemove: string) => {
     setFormData({
       ...formData,
@@ -171,7 +121,6 @@ export default function CreateBlogPage() {
     });
   };
 
-  // Özel kategori ekleme
   const handleAddCategory = () => {
     if (customCategory.trim() && !predefinedCategories.includes(customCategory.trim())) {
       setFormData({
@@ -179,65 +128,77 @@ export default function CreateBlogPage() {
         category: customCategory.trim()
       });
       setCustomCategory('');
-      
-      // Hata mesajını temizle
-      if (formErrors.category) {
-        setFormErrors({ ...formErrors, category: '' });
-      }
+      if (formErrors.category) setFormErrors({ ...formErrors, category: '' });
     }
   };
 
-  // Form gönderimi
+  // API'ye gönderim
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validate()) {
       showToast('Lütfen gerekli alanları doldurun', 'error');
       return;
     }
-    
     setIsSubmitting(true);
-    
+
     try {
-      // Gerçek bir uygulamada burada API çağrısı yapılacak
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // JWT token'ı clientdan al (ör: cookies/localStorage'dan)
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") || "" : "";
+
+      // Görsel için FormData kullan (eğer API destekliyorsa)
+      const data = new FormData();
+      data.append('title', formData.title);
+      data.append('excerpt', formData.excerpt);
+      data.append('content', formData.content);
+      data.append('author', formData.author);
+      data.append('category', formData.category);
+      data.append('isActive', String(formData.isActive));
+      data.append('slug', createSlug(formData.title));
+    
+      if (formData.image) data.append('image', formData.image);
+      data.append('tags', JSON.stringify(formData.tags));
+      // Eğer API sadece JSON alıyorsa, image'ı upload edip URL dönmelisin.
+      // Eğer API multipart/form-data kabul ediyorsa, bu şekilde gönder.
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_API_URL
+          ? `${process.env.NEXT_PUBLIC_API_URL}/blogs`
+          : "https://api.villasantalya.com/api/blogs",
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Content-Type'ı FormData ile otomatik bırak!
+          },
+          body: data,
+        }
+      );
+
+      if (!res.ok) throw new Error('Blog oluşturulamadı');
       showToast('Blog yazısı başarıyla oluşturuldu!', 'success');
-      
-      // Başarılı olduğunda blog listesine yönlendir
-      setTimeout(() => {
-        router.push('/admin/dashboard/admin/blogs');
-      }, 1000);
-      
-    } catch (error) {
-      showToast('Blog yazısı oluşturulurken bir hata oluştu', 'error');
+      setTimeout(() => router.push('/admin/dashboard/admin/blogs'), 1000);
+    } catch (error: any) {
+      showToast(error?.message || 'Blog yazısı oluşturulurken bir hata oluştu', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Toast gösterme işlevi
+  // Toast helper
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
-    setToast({
-      message,
-      type,
-      isVisible: true
-    });
+    setToast({ message, type, isVisible: true });
   };
 
-  // Tarih formatlama
   const formatDate = () => {
     const date = new Date();
     const months = [
-      'OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN', 
+      'OCAK', 'ŞUBAT', 'MART', 'NİSAN', 'MAYIS', 'HAZİRAN',
       'TEMMUZ', 'AĞUSTOS', 'EYLÜL', 'EKİM', 'KASIM', 'ARALIK'
     ];
     return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
   };
 
-  // Slug oluşturma
-  const createSlug = (title: string) => {
-    return title
+  const createSlug = (title: string) =>
+    title
       .toLowerCase()
       .replace(/ı/g, 'i')
       .replace(/ğ/g, 'g')
@@ -249,7 +210,6 @@ export default function CreateBlogPage() {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
-  };
 
   return (
     <DashboardLayout>
@@ -295,7 +255,7 @@ export default function CreateBlogPage() {
           </div>
         </div>
 
-        <form className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+       <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={handleSubmit}>
           {/* Ana İçerik - Sol Sütun */}
           <div className="lg:col-span-2 space-y-6">
             {/* Blog Başlığı */}
@@ -548,8 +508,7 @@ export default function CreateBlogPage() {
         </form>
       </div>
 
-      {/* Toast bildirimleri */}
-      <Toast 
+     <Toast
         message={toast.message}
         type={toast.type}
         isVisible={toast.isVisible}

@@ -17,12 +17,16 @@ const storage = multer.diskStorage({
     let uploadPath;
     
     // URL yoluna göre klasörü belirle
-    if (req.originalUrl.includes('/agents') || req.originalUrl.includes('/users')) {
-      uploadPath = path.join(__dirname, '../..', 'uploads/agents');
-    } else {
-      // Varsayılan olarak properties klasörünü kullan
-      uploadPath = path.join(__dirname, '../..', 'uploads/properties');
-    }
+if (req.originalUrl.includes('/blogs')) {
+  uploadPath = path.join(__dirname, '../..', 'uploads/blogs');
+  prefix = 'blog';
+} else if (req.originalUrl.includes('/agents') || req.originalUrl.includes('/users')) {
+  uploadPath = path.join(__dirname, '../..', 'uploads/agents');
+  prefix = 'agent';
+} else {
+  uploadPath = path.join(__dirname, '../..', 'uploads/properties');
+  prefix = 'property';
+}
     
     createDirectoryIfNotExists(uploadPath);
     cb(null, uploadPath);
@@ -35,8 +39,10 @@ const storage = multer.diskStorage({
     let prefix;
     if (req.originalUrl.includes('/agents') || req.originalUrl.includes('/users')) {
       prefix = 'agent';
-    } else {
+    } else if (req.originalUrl.includes('/properties')) {
       prefix = 'property';
+    } else if (req.originalUrl.includes('/blogs')) {
+      prefix = 'blog';
     }
     
     cb(null, prefix + '-' + uniqueSuffix + extension);

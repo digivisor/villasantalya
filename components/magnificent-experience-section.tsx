@@ -37,6 +37,8 @@ interface Property {
   baths?: number;
   mainImage: string;
   type: 'sale' | 'rent' | 'long-rent';
+  status?: string;
+  isApproved?: boolean | string;
 }
 
 // Tab tipini tanımla
@@ -80,7 +82,13 @@ export default function MagnificentExperienceSection(): JSX.Element {
         });
 
         if (response && response.properties) {
-          setProperties(response.properties);
+          // Sadece aktif ve onaylı olanlar
+          const filtered = response.properties.filter(
+            (p: Property) =>
+              p.status === "active" &&
+              (p.isApproved === true || p.isApproved === "true")
+          );
+          setProperties(filtered);
         } else {
           setProperties([]);
         }

@@ -2,32 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   Plus,
   Eye,
-  Edit, 
+  Edit,
   Trash2,
-  Calendar,
-  User,
-  Tag as TagIcon,
-  MessageCircle,
   ToggleRight,
-  Pencil,
   BookOpen,
-  Clock
+  Clock,
+  MessageCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import DeleteConfirmationModal from '../../.././components/admin/DeleteConfirmationModal';
+import DeleteConfirmationModal from '../../../components/admin/DeleteConfirmationModal';
 import Toast from '../../../components/ui/toast';
-import Toggle from '../../../components/ui/toggle';
 import StatusChangeModal from '../../../components/admin/StatusChangeModal';
 
-// Blog post veri tipi tanımı
+// API servis fonksiyonları
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/blogs`
+    : 'https://api.villasantalya.com/api/blogs';
+
 interface BlogPost {
-  id: number;
+  _id: string;
   title: string;
   excerpt: string;
   content?: string;
@@ -50,13 +50,13 @@ export default function AdminBlogsPage() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Modal states
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [newStatus, setNewStatus] = useState(false);
-  
+
   // Toast state
   const [toast, setToast] = useState({
     message: '',
@@ -64,144 +64,27 @@ export default function AdminBlogsPage() {
     isVisible: false
   });
 
+  // Blogları backend'den çek
   useEffect(() => {
-    // Mock data loading
-    setTimeout(() => {
-      const mockBlogs: BlogPost[] = [
-        {
-          id: 1,
-          title: "Mükemmel Açık Hava Yaşam Alanı Oluşturma İpuçları",
-          excerpt:
-            "Villa bahçenizi ve terasınızı nasıl daha fonksiyonel ve estetik hale getirebileceğinizi öğrenin. Modern peyzaj tasarımı ile yaşam kalitenizi artırın.",
-          date: "MART 26, 2024",
-          author: "Cem Uzan",
-          image: "/blog-1.jpg",
-          tags: ["Bahçe", "Tasarım", "Villa"],
-          category: "Tasarım İpuçları",
-          isActive: true,
-          comments: 12,
-          views: 456,
-          slug: "mukemmel-acik-hava-yasam-alani-olusturma-ipuclari",
-          lastUpdated: "2024-03-28"
-        },
-        {
-          id: 2,
-          title: "Emlak Danışmanlığında İlk Görüşmenin Önemi",
-          excerpt:
-            "Doğru emlak danışmanı seçimi, yatırımınızın geleceğini belirler. Profesyonel danışmanlık hizmetinin avantajlarını keşfedin ve ilk görüşmede nelere dikkat etmeniz gerektiğini öğrenin.",
-          date: "MART 24, 2024",
-          author: "Ayşe Demir",
-          image: "/blog-2.jpg",
-          tags: ["Danışmanlık", "Yatırım", "İlk Adım"],
-          category: "Emlak Rehberi",
-          isActive: true,
-          comments: 8,
-          views: 342,
-          slug: "emlak-danismanliginda-ilk-gorusmenin-onemi",
-          lastUpdated: "2024-03-25"
-        },
-        {
-          id: 3,
-          title: "Emlak Yatırımında Temel Stratejiler",
-          excerpt:
-            "Emlak yatırımına başlamadan önce bilmeniz gereken temel konular. Piyasa analizi, lokasyon seçimi ve finansman seçenekleri ile yatırımınızı akıllıca planlayın.",
-          date: "MART 22, 2024",
-          author: "Mehmet Kaya",
-          image: "/blog-3.jpg",
-          tags: ["Temel Bilgiler", "Yatırım", "Strateji"],
-          category: "Başlangıç Rehberi",
-          isActive: true,
-          comments: 15,
-          views: 528,
-          slug: "emlak-yatiriminda-temel-stratejiler",
-          lastUpdated: "2024-03-23"
-        },
-        {
-          id: 4,
-          title: "2024 Antalya Emlak Piyasası Analizi ve Öngörüler",
-          excerpt:
-            "Antalya emlak piyasasının güncel durumu ve gelecek projeksiyonları. Yatırım fırsatları ve dikkat edilmesi gereken noktalar ile bilinçli kararlar alın.",
-          date: "MART 20, 2024",
-          author: "Fatma Özkan",
-          image: "/blog-4.jpg",
-          tags: ["Piyasa", "Trend", "Analiz", "2024"],
-          category: "Piyasa Analizi",
-          isActive: true,
-          comments: 23,
-          views: 712,
-          slug: "2024-antalya-emlak-piyasasi-analizi-ve-ongoruler",
-          lastUpdated: "2024-03-22"
-        },
-        {
-          id: 5,
-          title: "Villa Bahçesi İçin Akdeniz İklimine Uygun Peyzaj Tasarımı",
-          excerpt:
-            "Villanızın bahçesini Akdeniz iklimine uygun bitkiler ve tasarım öğeleriyle nasıl profesyonel bir peyzaj mimarı gibi tasarlayabilirsiniz.",
-          date: "MART 18, 2024",
-          author: "Zeynep Arslan",
-          image: "/blog-5.jpg",
-          tags: ["Peyzaj", "Bahçe", "Tasarım", "Akdeniz"],
-          category: "Tasarım İpuçları",
-          isActive: false,
-          comments: 19,
-          views: 631,
-          slug: "villa-bahcesi-icin-akdeniz-iklimine-uygun-peyzaj-tasarimi",
-          lastUpdated: "2024-03-20"
-        },
-        {
-          id: 6,
-          title: "Gayrimenkul Alımında Yasal Süreçler ve Güvenli Yatırım",
-          excerpt:
-            "Mülk satın alırken dikkat edilmesi gereken yasal süreçler ve güvenlik önlemleri. Tapu işlemleri, sigorta ve sözleşme detayları hakkında bilmeniz gerekenler.",
-          date: "MART 16, 2024",
-          author: "Ali Yılmaz",
-          image: "/blog-6.jpg",
-          tags: ["Güvenlik", "Yasal", "Sigorta", "Tapu"],
-          category: "Yasal Süreçler",
-          isActive: false,
-          comments: 31,
-          views: 845,
-          slug: "gayrimenkul-aliminda-yasal-surecler-ve-guvenli-yatirim",
-          lastUpdated: "2024-03-17"
-        },
-        {
-          id: 7,
-          title: "Lüks Gayrimenkulde Son Trendler: Yeni Nesil Konut Teknolojileri",
-          excerpt:
-            "Lüks gayrimenkul sektöründe öne çıkan yeni teknolojiler ve tasarım trendleri. Akıllı ev sistemlerinden sürdürülebilir lüks kavramına kadar yeni nesil konut özellikleri.",
-          date: "MART 14, 2024",
-          author: "Serkan Altuğ",
-          image: "/blog-7.jpg",
-          tags: ["Lüks", "Teknoloji", "Tasarım", "Akıllı Ev"],
-          category: "Trend Analizi",
-          isActive: true,
-          comments: 27,
-          views: 736,
-          slug: "luks-gayrimenkulde-son-trendler-yeni-nesil-konut-teknolojileri",
-          lastUpdated: "2024-03-15"
-        },
-        {
-          id: 8,
-          title: "Uzun Dönem Kiralama mı, Satın Alma mı? Doğru Kararı Verme Rehberi",
-          excerpt:
-            "Antalya'da uzun dönem kiralama ve satın alma seçeneklerinin avantaj ve dezavantajları. Finansal analizler ve yaşam tarzınıza göre doğru tercihi yapın.",
-          date: "MART 12, 2024",
-          author: "Canan Korkmaz",
-          image: "/blog-8.jpg",
-          tags: ["Kiralama", "Satın Alma", "Finansal Analiz"],
-          category: "Finansal Rehber",
-          isActive: true,
-          comments: 42,
-          views: 925,
-          slug: "uzun-donem-kiralama-mi-satin-alma-mi-dogru-karari-verme-rehberi",
-          lastUpdated: "2024-03-14"
-        }
-      ];
-      
-      setBlogPosts(mockBlogs);
-      setFilteredPosts(mockBlogs);
-      setIsLoading(false);
-    }, 1000);
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+        const res = await fetch(API_URL, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          cache: 'no-store',
+        });
+        if (!res.ok) throw new Error('Bloglar alınamadı');
+        const blogs = await res.json();
+        setBlogPosts(blogs);
+        setFilteredPosts(blogs);
+      } catch (err) {
+        showToast('Bloglar alınırken hata oluştu', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBlogs();
   }, []);
 
   // Kategori listesi
@@ -210,81 +93,98 @@ export default function AdminBlogsPage() {
   // Filtreleme işlevi
   useEffect(() => {
     const filtered = blogPosts.filter(post => {
-      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+      const matchesSearch =
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
       const matchesCategory = filterCategory === 'all' || post.category === filterCategory;
-      
-      const matchesStatus = filterStatus === 'all' || 
-                           (filterStatus === 'active' && post.isActive) || 
-                           (filterStatus === 'inactive' && !post.isActive);
-      
+      const matchesStatus =
+        filterStatus === 'all' ||
+        (filterStatus === 'active' && post.isActive) ||
+        (filterStatus === 'inactive' && !post.isActive);
+
       return matchesSearch && matchesCategory && matchesStatus;
     });
-    
+
     setFilteredPosts(filtered);
   }, [searchTerm, filterCategory, filterStatus, blogPosts]);
 
-  // Modal handlers
+  // Blog silme
   const handleDeletePost = (post: BlogPost) => {
     setSelectedPost(post);
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDeletePost = () => {
+  const confirmDeletePost = async () => {
     if (selectedPost) {
-      setBlogPosts(blogPosts.filter(p => p.id !== selectedPost.id));
-      setFilteredPosts(filteredPosts.filter(p => p.id !== selectedPost.id));
-      setIsDeleteModalOpen(false);
-      showToast('Blog yazısı başarıyla silindi.', 'success');
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+        const res = await fetch(`${API_URL}/${selectedPost.slug}`, {
+          method: 'DELETE',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) throw new Error('Blog silinemedi');
+        setBlogPosts(blogPosts.filter(p => p._id !== selectedPost._id));
+        setFilteredPosts(filteredPosts.filter(p => p._id !== selectedPost._id));
+        showToast('Blog yazısı başarıyla silindi.', 'success');
+      } catch (err) {
+        showToast('Blog silinirken hata oluştu', 'error');
+      } finally {
+        setIsDeleteModalOpen(false);
+      }
     }
   };
-  
+
+  // Blog aktif/pasif değiştir
   const handleToggleStatus = (post: BlogPost) => {
     setSelectedPost(post);
     setNewStatus(!post.isActive);
     setIsStatusModalOpen(true);
   };
-  
-  const confirmStatusChange = () => {
+
+  const confirmStatusChange = async () => {
     if (selectedPost) {
-      const updatedPosts = blogPosts.map(p => 
-        p.id === selectedPost.id 
-          ? {
-              ...p,
-              isActive: newStatus
-            }
-          : p
-      );
-      
-      setBlogPosts(updatedPosts);
-      
-      // Filtreleri uygula
-      const updatedFilteredPosts = updatedPosts.filter(post => {
-        const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            post.author.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesCategory = filterCategory === 'all' || post.category === filterCategory;
-        
-        const matchesStatus = filterStatus === 'all' || 
-                             (filterStatus === 'active' && post.isActive) || 
-                             (filterStatus === 'inactive' && !post.isActive);
-        
-        return matchesSearch && matchesCategory && matchesStatus;
-      });
-      
-      setFilteredPosts(updatedFilteredPosts);
-      setIsStatusModalOpen(false);
-      showToast(
-        `Blog yazısı başarıyla ${newStatus ? 'aktif' : 'pasif'} duruma getirildi.`,
-        'success'
-      );
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+        const res = await fetch(`${API_URL}/${selectedPost.slug}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ isActive: newStatus }),
+        });
+        if (!res.ok) throw new Error('Durum güncellenemedi');
+        // Blogu güncel listeyle güncelle
+        const updatedPosts = blogPosts.map(p =>
+          p._id === selectedPost._id
+            ? { ...p, isActive: newStatus }
+            : p
+        );
+        setBlogPosts(updatedPosts);
+        setFilteredPosts(filteredPosts.map(p =>
+          p._id === selectedPost._id
+            ? { ...p, isActive: newStatus }
+            : p
+        ));
+        showToast(
+          `Blog yazısı başarıyla ${newStatus ? 'aktif' : 'pasif'} duruma getirildi.`,
+          'success'
+        );
+      } catch (err) {
+        showToast('Durum güncellenirken hata oluştu', 'error');
+      } finally {
+        setIsStatusModalOpen(false);
+      }
     }
   };
-
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath.startsWith('http')) {
+    return `https://api.villasantalya.com${imagePath}`;
+  }
+  return imagePath;
+}
   // Toast gösterme işlevi
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
     setToast({
@@ -314,7 +214,7 @@ export default function AdminBlogsPage() {
             <p className="text-gray-600 mt-1">Blog yazılarını yönetin</p>
           </div>
           <div className="mt-4 sm:mt-0">
-            <Link 
+            <Link
               href="/admin/dashboard/admin/blogs/create"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center"
             >
@@ -419,12 +319,12 @@ export default function AdminBlogsPage() {
               <tbody className="divide-y divide-gray-200">
                 {filteredPosts.length > 0 ? (
                   filteredPosts.map((post) => (
-                    <tr key={post.id} className="hover:bg-gray-50">
+                    <tr key={post._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
                           <div className="relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden">
-                            <Image 
-                              src={post.image} 
+                            <Image
+                              src={getImageUrl(post.image)}
                               alt={post.title}
                               fill
                               className="object-cover"
@@ -446,10 +346,10 @@ export default function AdminBlogsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <div className="text-sm text-gray-900">{post.date}</div>
+                          <div className="text-sm text-gray-900">{post.date ? post.date : '-'}</div>
                           <div className="text-xs text-gray-500 flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
-                            <span>Son güncelleme: {post.lastUpdated}</span>
+                            <span>Son güncelleme: {post.lastUpdated || '-'}</span>
                           </div>
                         </div>
                       </td>
@@ -466,10 +366,10 @@ export default function AdminBlogsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span 
+                        <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            post.isActive 
-                              ? 'bg-green-100 text-green-800' 
+                            post.isActive
+                              ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
@@ -483,18 +383,22 @@ export default function AdminBlogsPage() {
                               <Eye className="h-4 w-4" />
                             </button>
                           </Link>
-                          <Link href={`/admin/dashboard/admin/blogs/edit/${post.id}`}>
+                          <Link href={`/admin/dashboard/admin/blogs/edit/${post._id}`}>
                             <button className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-colors">
                               <Edit className="h-4 w-4" />
                             </button>
                           </Link>
-                          <button 
+                          <button
                             onClick={() => handleToggleStatus(post)}
-                            className={`p-2 ${post.isActive ? 'text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100' : 'text-green-600 hover:text-green-800 hover:bg-green-100'} rounded-lg transition-colors`}
+                            className={`p-2 ${
+                              post.isActive
+                                ? 'text-yellow-600 hover:text-yellow-800 hover:bg-yellow-100'
+                                : 'text-green-600 hover:text-green-800 hover:bg-green-100'
+                            } rounded-lg transition-colors`}
                           >
                             <ToggleRight className="h-4 w-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeletePost(post)}
                             className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors"
                           >
@@ -520,14 +424,14 @@ export default function AdminBlogsPage() {
       </div>
 
       {/* Modals */}
-      <DeleteConfirmationModal 
+      <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={confirmDeletePost}
         title="Blog Yazısını Sil"
         message={`"${selectedPost?.title}" başlıklı blog yazısını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`}
       />
-      
+
       <StatusChangeModal
         isOpen={isStatusModalOpen}
         onClose={() => setIsStatusModalOpen(false)}
@@ -536,9 +440,9 @@ export default function AdminBlogsPage() {
         message={`"${selectedPost?.title}" başlıklı blog yazısını ${newStatus ? 'aktif' : 'pasif'} duruma getirmek istediğinize emin misiniz?`}
         status={newStatus}
       />
-      
+
       {/* Toast bildirimleri */}
-      <Toast 
+      <Toast
         message={toast.message}
         type={toast.type}
         isVisible={toast.isVisible}
