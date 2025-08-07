@@ -276,8 +276,8 @@ export default function MagnificentExperienceSection(): JSX.Element {
                       {(property.bedrooms || property.beds) && (
                         <div className="flex items-center space-x-1">
                           <Bed className="w-4 h-4 text-orange-500" />
-                          <span className="font-medium">
-                            {(property.bedrooms ?? property.beds)} Yatak
+                          <span className="font-medium" style="font-size:12px;">
+                            {(property.bedrooms ?? property.beds)}
                           </span>
                         </div>
                       )}
