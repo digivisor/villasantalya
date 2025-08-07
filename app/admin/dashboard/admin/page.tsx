@@ -248,15 +248,15 @@ export default function AdminDashboard() {
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
           property.status === 'active' 
             ? 'bg-green-100 text-green-800' 
-            : property.status === 'Pending'
+            : property.status === 'pending'
             ? 'bg-yellow-100 text-yellow-800'
-            : property.status === 'Rejected'
+            : property.status === 'rejected'
             ? 'bg-red-100 text-red-800'
             : 'bg-red-100 text-red-800'
         }`}>
           {property.status === "active" ? "Aktif" 
            : property.status === "rejected" ? "Reddedildi"
-           : property.status === "Pending" ? "Beklemede"
+           : property.status === "pending" ? "Beklemede"
            : property.status}
         </span>
       </td>
