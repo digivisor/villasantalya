@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     // YouTube video id'yi çek
      const fetchVideoId = async () => {
       try {
-        const res = await fetch("http://api.villasantalya.com/api/settings/youtube-video");
+        const res = await fetch("https://api.villasantalya.com/api/settings/youtube-video");
         if (res.ok) {
           const data = await res.json();
           if (data.videoId) setVideoId(data.videoId);
