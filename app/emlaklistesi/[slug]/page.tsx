@@ -49,6 +49,7 @@ import Link from "next/link";
 import { generateSlug } from "@/utils/helpers";
 import { getPropertyBySlug } from "../../services/property.service";
 import dynamic from "next/dynamic";
+import PropertyCommentForm from "@/components/PropertyCommentFrom";
 
 // Google Maps'i client tarafında dinamik olarak yükle
 const MapWithNoSSR = dynamic(() => import('@/components/map'), {
@@ -679,70 +680,13 @@ export default function PropertyDetailPage() {
               )}
               
               {/* Comment Form */}
-              <div className="bg-white rounded-xl p-4 md:p-6 shadow-md">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Bu İlan Hakkında Bilgi Alın</h3>
-                <p className="text-gray-600 mb-4 text-xs md:text-sm">
-                  Bu emlak hakkında sorularınız varsa veya daha fazla bilgi almak istiyorsanız, aşağıdaki formu
-                  doldurarak bizimle iletişime geçebilirsiniz.
-                </p>
-
-                <form onSubmit={handleCommentSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Input
-                        type="text"
-                        name="name"
-                        placeholder="Adınız Soyadınız"
-                        value={commentForm.name}
-                        onChange={handleInputChange}
-                        className="h-10 md:h-12 rounded-lg border-gray-200 text-gray-600 placeholder:text-gray-400"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        type="email"
-                        name="email"
-                        placeholder="E-posta Adresiniz"
-                        value={commentForm.email}
-                        onChange={handleInputChange}
-                        className="h-10 md:h-12 rounded-lg border-gray-200 text-gray-600 placeholder:text-gray-400"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      placeholder="Telefon Numaranız (Opsiyonel)"
-                      value={commentForm.phone}
-                      onChange={handleInputChange}
-                      className="h-10 md:h-12 rounded-lg border-gray-200 text-gray-600 placeholder:text-gray-400"
-                    />
-                  </div>
-
-                  <div>
-                    <Textarea
-                      name="message"
-                      placeholder="Bu emlak hakkındaki sorularınız veya yorumlarınız..."
-                      value={commentForm.message}
-                      onChange={handleInputChange}
-                      className="min-h-24 md:min-h-32 rounded-lg border-gray-200 text-gray-600 placeholder:text-gray-400 resize-none"
-                      required
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full h-10 md:h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm md:text-base font-semibold"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    İleti Gönder
-                  </Button>
-                </form>
-              </div>
+           <div className="bg-white rounded-2xl p-8 shadow-lg">
+  <h3 className="text-xl font-bold text-gray-900 mb-4">Bu İlan Hakkında Bilgi Alın</h3>
+  <p className="text-gray-600 mb-4 text-xs md:text-sm">
+    Bu emlak hakkında sorularınız varsa veya daha fazla bilgi almak istiyorsanız, aşağıdaki formu doldurarak bizimle iletişime geçebilirsiniz.
+  </p>
+  <PropertyCommentForm propertyId={property._id.toString()} />
+</div>
             </div>
 
             {/* Sidebar */}

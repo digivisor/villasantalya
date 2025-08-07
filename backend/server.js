@@ -103,6 +103,13 @@ try {
 } catch (error) {
   console.error('Error loading blog routes:', error);
 }
+try {
+  const commentRoutes = require('./src/routes/comment.routes');
+  app.use('/api/comments', commentRoutes);
+  console.log('Comment routes loaded');
+} catch (error) {
+  console.error('Error loading comment routes:', error);
+}
 
 
 // Base route
