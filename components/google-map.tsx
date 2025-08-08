@@ -176,7 +176,7 @@ export default function GoogleMap() {
       const getImageUrl = (imagePath?: string) => {
         if (!imagePath) return "";
         if (!imagePath.startsWith("http")) {
-          return `http://localhost:5000${imagePath}`;
+          return `https://api.villasantalya.com${imagePath}`;
         }
         return imagePath;
       };
