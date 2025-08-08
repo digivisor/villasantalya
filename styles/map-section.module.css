@@ -1,0 +1,13 @@
+.mapse:after{
+    content: "";
+    position: absolute;
+    background: radial-gradient(at center center, transparent 50%, #f9fafb 70%);
+    background-size: 700px 700px;
+    z-index: 1;
+    pointer-events: none;
+    top: -0.0005px;
+
+    width: 700px;
+    height: 700px;
+   
+}

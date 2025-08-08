@@ -176,7 +176,7 @@ setStats(s => ({ ...s, totalConsultants: totalConsultants?.agents?.length || 0 }
             change={stats.consultantsChange || undefined}
           />
           <StatCard
-            title="Bekleyen Yorum"
+            title="Bekleyen Mesajlar"
             value={stats.pendingComments}
             icon={MessageSquare}
             color="bg-gradient-to-br from-orange-500 to-orange-600"

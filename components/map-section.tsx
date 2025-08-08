@@ -4,6 +4,10 @@ import { MapPin, Home, Bath, Square, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import GoogleMap from "./google-map"
 import propertyService from "../app/services/property.service"
+import styles from "../styles/map-section.module.css"
+import { ar } from "date-fns/locale"
+
+
 
 interface MapProperty {
   id: string
@@ -16,6 +20,9 @@ interface MapProperty {
   lat: number
   lng: number
   slug?: string
+  mainImage?: string 
+  price?: string | number
+
 }
 
 export default function MapSection() {
@@ -25,6 +32,25 @@ export default function MapSection() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+
+
+// MapSection içinde
+const googleMapProperties = allMapProperties.map(p => ({
+  _id: p.id,
+  title: p.name,
+  address: p.address,
+  district: "", // veya gerektiği gibi doldur
+  city: "",     // veya gerektiği gibi doldur
+  location: { lat: p.lat, lng: p.lng },
+  image: p.image,           
+  mainImage: p.mainImage,   
+  price: p.price,  
+  area: p.area, // Yeni alanı ekle
+  beds: p.beds, // Yeni alanı ekle
+  baths: p.baths, // Yeni alanı ekle
+  slug: p.slug // Slug'u da ekle
+}));
+
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -33,13 +59,15 @@ export default function MapSection() {
         if (response?.properties && Array.isArray(response.properties)) {
           // YALNIZCA status === "active" ve isApproved === true olanlar
           const filtered = response.properties.filter(
-            (p) => 
+            (p: { status: string; isApproved: string | boolean; location: { coordinates: string | any[]; lat: any; lng: any } }) => 
               p.status === "active" && 
               (p.isApproved === true || p.isApproved === "true") && 
               p.location && 
               ((p.location.coordinates?.length === 2) || (p.location.lat && p.location.lng))
           )
-          const mapped = filtered.map(p => {
+          const mapped = filtered.map((p: {
+            price: any, location: { coordinates: any; lat: any; lng: any }; _id: any; title: any; address: any; district: any; city: any; area: any; bedrooms: any; beds: any; bathrooms: any; baths: any; mainImage: string | undefined; slug: any 
+}) => {
             const coords = p.location.coordinates
             const lat = coords?.[1] ?? Number(p.location.lat)
             const lng = coords?.[0] ?? Number(p.location.lng)
@@ -54,6 +82,7 @@ export default function MapSection() {
               lat,
               lng,
               slug: p.slug,
+              price:p.price
             }
           })
           setAllMapProperties(mapped)
@@ -128,7 +157,6 @@ export default function MapSection() {
                   onClick={() => handlePropertyClick(property)}
                   className="group flex bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 cursor-pointer"
                 >
-                  {/* Aspect Ratio kullanımı ile tam dolu resim */}
                   <div className="w-28 sm:w-40 flex-shrink-0 aspect-square overflow-hidden bg-gray-100">
                     <img
                       src={property.image}
@@ -164,14 +192,17 @@ export default function MapSection() {
                 </div>
               ))}
             </div>
-            <div className="relative mt-6 lg:mt-0">
+            <div className={`${styles.mapse} relative mt-5 lg:mt-10`}>
               {error ? (
-                <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
+                <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-[800px] sm:h-[800px] md:h-[800px] lg:h-[800px] flex items-center justify-center">
                   <p className="text-red-600 text-center">{error}</p>
                 </div>
               ) : (
-                <div className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-xl border border-gray-200 shadow-md">
-                  <GoogleMap properties={mapProperties} />
+                <div className="  lg:w-[700px] h-[700px] sm:h-[200px] md:h-[200px] lg:h-[600px] "
+                
+                style={{ position: 'relative', width: '100%', height: '100%' ,  }}>
+                
+                <GoogleMap properties={googleMapProperties} />
                 </div>
               )}
             </div>
@@ -181,3 +212,5 @@ export default function MapSection() {
     </section>
   )
 }
+
+
