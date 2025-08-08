@@ -170,7 +170,7 @@ export default function MapSection() {
                   <p className="text-red-600 text-center">{error}</p>
                 </div>
               ) : (
-                <div className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-xl border border-gray-200 shadow-md">
+                <div className="h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden rounded-xl border border-gray-200">
                   <GoogleMap properties={mapProperties} />
                 </div>
               )}
