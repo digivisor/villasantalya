@@ -88,3 +88,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+.mapse:after{
+    content: "";
+    position: absolute;
+    background: radial-gradient(at center center, transparent 0%, #f9fafb 70%);
+    background-size: 100%;
+    z-index: 1;
+    pointer-events: none;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+}
