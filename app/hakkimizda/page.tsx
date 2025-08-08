@@ -263,29 +263,11 @@ export default function AboutPage() {
             {/* Desktop Title */}
             <h2 className="hidden md:block text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-8 max-w-4xl mx-auto">
               Tüm Ayrıcalıklarıyla Lüks{" "}
-              <span className="inline-block relative mx-2">
-                <Image
-                  src="/villa-showcase-1.jpg"
-                  alt="Lüks Villa"
-                  width={80}
-                  height={35}
-                  className="rounded-2xl shadow-lg"
-                />
-              </span>{" "}
+                      
               Mülklerimize
               <br />
               <span className="inline-flex items-center gap-4 mt-4">
-                <span>Hoş</span>
-                <div className="relative">
-                  <Image
-                    src="/villa-showcase-2.png"
-                    alt="Villa İç Mekan"
-                    width={80}
-                    height={30}
-                    className="rounded-xl shadow-lg"
-                  />
-                </div>
-                <span>Geldiniz</span>
+                <span>Hoş Geldiniz</span>
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-1">
                     <div className="w-10 h-10 bg-orange-200 rounded-full border-2 border-white hover:scale-110 transition-transform duration-300 cursor-pointer shadow-md"></div>
@@ -309,23 +291,7 @@ export default function AboutPage() {
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-6">
                 Tüm Ayrıcalıklarıyla Lüks Mülklerimize Hoş Geldiniz
               </h2>
-              {/* Mobile Images */}
-              <div className="flex justify-center items-center gap-4 mb-6">
-                <Image
-                  src="/villa-showcase-1.jpg"
-                  alt="Lüks Villa"
-                  width={60}
-                  height={40}
-                  className="rounded-xl shadow-lg"
-                />
-                <Image
-                  src="/villa-showcase-2.png"
-                  alt="Villa İç Mekan"
-                  width={60}
-                  height={40}
-                  className="rounded-xl shadow-lg"
-                />
-              </div>
+    
               {/* Mobile Play Button and Avatars */}
               <div className="flex justify-center items-center gap-4">
                 <div className="flex -space-x-1">
@@ -391,17 +357,17 @@ export default function AboutPage() {
               </div>
               {/* Team Avatars */}
               <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-gray-800/80 rounded-full p-2 md:p-3 flex items-center space-x-2">
-                <div className="flex -space-x-2">
-                  <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-200 rounded-full border-2 border-white"></div>
-                  <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-300 rounded-full border-2 border-white"></div>
-                  <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-400 rounded-full border-2 border-white"></div>
-                  <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">69+</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                <Image
+                  src="/villa-showcase-2.png"
+                  alt="Villa Showcase 2"
+                  width={100}
+                  height={40}
+               
+                />
 
+                </div>
+               
+            </div>
             {/* Content */}
             <div className="space-y-6 md:space-y-8 order-1 lg:order-2">
               <div>

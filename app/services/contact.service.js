@@ -32,3 +32,19 @@ export async function deleteAllContactMessages() {
   });
   return await res.json();
 }
+
+export async function markContactMessageAsRead(id) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_URL}/contact/${id}/read`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Mesaj durumu güncellenemedi");
+  }
+  return await res.json();
+}

@@ -10,6 +10,7 @@ const commentSchema = new mongoose.Schema({
   email: { type: String, required: false },
   phone: { type: String, required: true },
   message: { type: String, required: true },
+  status: { type: String, enum: ["pending", "read"], default: "pending" }, 
   createdAt: { type: Date, default: Date.now }
 });
 

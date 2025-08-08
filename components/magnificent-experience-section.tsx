@@ -47,11 +47,11 @@ interface FilterTab {
   label: string;
   icon: React.ElementType;
 }
-
+const TLIcon = () => <span style={{ fontWeight: "bold" }}>₺</span>;
 const filterTabs: FilterTab[] = [
   { id: "all", label: "Tüm Mülkler", icon: Home },
   { id: "sale", label: "Satılık", icon: Key },
-  { id: "rent", label: "Kiralık", icon: DollarSign },
+  { id: "rent", label: "Kiralık", icon: TLIcon },
   { id: "long-rent", label: "Uzun Dönem Kiralama", icon: Calendar },
 ]
 

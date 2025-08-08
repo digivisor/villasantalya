@@ -1,24 +1,24 @@
-// routes/comment.routes.js
-const express = require("express");
-const router = express.Router();
-const commentController = require("../controllers/comment.controller");
-const { verifyToken, isAdmin } = require("../middleware/auth.middleware");
+    // routes/comment.routes.js
+    const express = require("express");
+    const router = express.Router();
+    const commentController = require("../controllers/comment.controller");
+    const { verifyToken, isAdmin } = require("../middleware/auth.middleware");
 
 
-router.post("/", commentController.addComment);
+    router.post("/", commentController.addComment);
 
-router.get("/property/:propertyId", commentController.getCommentsByProperty);
+    router.get("/property/:propertyId", commentController.getCommentsByProperty);
 
-router.get('/all', verifyToken, isAdmin, commentController.getAllCommentsWithProperty);
+    router.get('/all', verifyToken, isAdmin, commentController.getAllCommentsWithProperty);
 
+    router.patch('/:id/read', verifyToken, isAdmin, commentController.markCommentAsRead);
 
-
-// BUNU SİL SİLMEYİ UNUTMA! (Test/Admin için tüm yorumları sil)
-
-
-router.delete("/comments/all", commentController.deleteAllComments);
+    // BUNU SİL SİLMEYİ UNUTMA! (Test/Admin için tüm yorumları sil)
 
 
+    router.delete("/comments/all", commentController.deleteAllComments);
 
 
-module.exports = router;
+
+
+    module.exports = router;

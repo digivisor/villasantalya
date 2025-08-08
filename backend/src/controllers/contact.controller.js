@@ -34,3 +34,18 @@ exports.deleteAllContactMessages = async (req, res) => {
     res.status(500).json({ message: "Mesajlar silinemedi.", error: err.message });
   }
 };
+
+exports.markContactMessageAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const contact = await Contact.findByIdAndUpdate(
+      id,
+      { status: "read" },
+      { new: true }
+    );
+    if (!contact) return res.status(404).json({ message: "Mesaj bulunamadı" });
+    res.json({ message: "Mesaj okundu olarak işaretlendi", contact });
+  } catch (err) {
+    res.status(500).json({ message: "Mesaj güncellenemedi", error: err.message });
+  }
+};

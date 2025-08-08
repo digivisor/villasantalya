@@ -24,8 +24,8 @@ export default function LuxuryVillasSection() {
                   className="object-cover"
                 />
 
-                {/* User Reviews Overlay */}
-                <div className="absolute bottom-6 left-6 bg-black/85 backdrop-blur-sm rounded-2xl px-5 py-4 text-white">
+                {/* User Reviews Overlay - sadece lg ve üstünde göster */}
+                <div className="absolute bottom-6 left-6 bg-black/85 backdrop-blur-sm rounded-2xl px-5 py-4 text-white hidden lg:block">
                   <div className="flex items-center space-x-4">
                     {/* User Avatars */}
                     <div className="flex -space-x-3">
@@ -38,7 +38,6 @@ export default function LuxuryVillasSection() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                  
                     </div>
                     {/* Text */}
                     <div className="text-sm font-medium whitespace-nowrap">Dünya çapında en iyi derecelendiriler</div>

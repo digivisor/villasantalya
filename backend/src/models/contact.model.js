@@ -6,7 +6,8 @@ const contactSchema = new mongoose.Schema(
     email: { type: String },
     phone: { type: String },
     subject: { type: String },
-    message: { type: String, required: true }
+    message: { type: String, required: true },
+    status: { type: String, enum: ["pending", "read"], default: "pending" }
   },
   { timestamps: true }
 );

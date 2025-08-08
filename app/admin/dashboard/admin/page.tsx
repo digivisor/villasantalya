@@ -13,6 +13,13 @@ import {
 } from 'lucide-react';
 import propertyService from "../../../services/property.service";
 import { updateYoutubeVideoId } from "../../../services/settings.service";
+import userService, { 
+  Consultant, 
+  ConsultantFormData,
+  Pagination
+} from '../../../services/user.service';
+import { getAllCommentsWithProperty } from '../../../services/comment.service';
+import { getAllContactMessages } from '../../../services/contact.service';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -46,7 +53,45 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error("Dashboard verileri çekilemedi:", error);
       }
+
+       const allActiveProps = await propertyService.getAllProperties({ status: 'active' });
+       setStats(s => ({
+        ...s,
+        totalProperties: allActiveProps?.properties?.length || 0
+      }));
+
+       const totalConsultants =  await userService.getAllConsultants(1, 9999, 'name', true);
+setStats(s => ({ ...s, totalConsultants: totalConsultants?.agents?.length || 0 }));
+    
+    
+   
+   
+            // --- BEKLEYEN YORUM HESAPLAMA ---
+      let unreadCommentsCount = 0;
+      let unreadContactsCount = 0;
+      try {
+        const comments = await getAllCommentsWithProperty();
+        // API'den gelen array veya {comments: []} olabilir:
+        const arr = Array.isArray(comments) ? comments : (comments.comments || []);
+        unreadCommentsCount = arr.filter((c: any) => c.status !== 'read').length;
+      } catch (err) {
+        unreadCommentsCount = 0;
+      }
+      try {
+        const contacts = await getAllContactMessages();
+        unreadContactsCount = Array.isArray(contacts)
+          ? contacts.filter((m: any) => m.status !== 'read').length
+          : 0;
+      } catch (err) {
+        unreadContactsCount = 0;
+      }
+      setStats(s => ({
+        ...s,
+        pendingComments: unreadCommentsCount + unreadContactsCount
+      }));
     };
+  
+
 
     // YouTube video id'yi çek
      const fetchVideoId = async () => {
@@ -117,7 +162,7 @@ export default function AdminDashboard() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
-            title="Toplam İlan"
+            title="Aktif İlanlar"
             value={stats.totalProperties}
             icon={Building2}
             color="bg-gradient-to-br from-blue-500 to-blue-600"
@@ -136,13 +181,13 @@ export default function AdminDashboard() {
             icon={MessageSquare}
             color="bg-gradient-to-br from-orange-500 to-orange-600"
           />
-          <StatCard
+          {/* <StatCard
             title="Aylık Gelir"
             value={`₺${stats.monthlyRevenue?.toLocaleString?.() ?? 0}`}
             icon={DollarSign}
             color="bg-gradient-to-br from-purple-500 to-purple-600"
             change={stats.revenueChange || undefined}
-          />
+          /> */}
         </div>
 
         {/* Youtube Video Yönetimi */}
@@ -299,13 +344,13 @@ export default function AdminDashboard() {
           </div>
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
             <MessageSquare className="h-8 w-8 mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Yorum Yönetimi</h3>
-            <p className="text-orange-100 text-sm mb-4">Kullanıcı yorumlarını incele</p>
+            <h3 className="text-lg font-semibold mb-2">Mesaj Yönetimi</h3>
+            <p className="text-orange-100 text-sm mb-4">Kullanıcı mesajlarını incele</p>
             <a 
               href="/admin/dashboard/admin/comments"
               className="inline-block bg-white text-orange-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-50 transition-colors"
             >
-              Yorumlar
+              Mesajlar
             </a>
           </div>
         </div>

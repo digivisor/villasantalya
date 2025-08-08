@@ -10,6 +10,9 @@ import {
   getWorkingHours,
   type WorkingHours 
 } from '../app/services/settings.service';
+import Link from "next/link";
+
+
 
 interface ContactInfo {
   address: string;
@@ -71,8 +74,7 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // Daha kompakt çalışma saatleri formatı
-// formatWorkingHours fonksiyonunu güncelle
+
 const formatWorkingHours = () => {
   const weekday = `${workingHours.weekday.start} - ${workingHours.weekday.end}`;
   const saturday = `${workingHours.saturday.start} - ${workingHours.saturday.end}`;
@@ -156,7 +158,7 @@ const formatWorkingHours = () => {
     <Clock className="w-4 h-4 text-orange-500" />
     <span>{formatWorkingHours()}</span>
   </div>
-  {/* Sosyal medya linkleri */}
+
   <div className="flex items-center space-x-2">
 
   </div>
@@ -192,13 +194,15 @@ const formatWorkingHours = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center">
-            <Image
-              src="/villasantalya-logo.png"
-              alt="VillasAntalya Logo"
-              width={80}
+            <Link href="/">
+              <Image
+                src="/villasantalya-logo.png"
+                alt="VillasAntalya Logo"
+                width={80}
               height={60}
               className="h-12 w-auto"
             />
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

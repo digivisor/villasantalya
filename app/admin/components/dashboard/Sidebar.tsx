@@ -23,13 +23,16 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import propertyService from '../../../services/property.service'; // ekle
+import { getAllCommentsWithProperty } from '../../../services/comment.service';
+import { getAllContactMessages } from '../../../services/contact.service';
 
 interface NavItem {
   label: string;
   href: string;
   icon: any;
-  adminOnly?: boolean; // sadece admin için
-  consultantOnly?: boolean; // sadece danışman için
+  adminOnly?: boolean;
+  consultantOnly?: boolean;
 }
 
 export default function Sidebar() {
@@ -38,17 +41,52 @@ export default function Sidebar() {
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Debug için
+  // Badge state'leri
+  const [pendingPropertiesCount, setPendingPropertiesCount] = useState<number>(0);
+  const [pendingMessagesCount, setPendingMessagesCount] = useState<number>(0);
+
+  // Bekleyen ilanları ve mesajları çek
   useEffect(() => {
-    if (user) {
-      console.log('Sidebar user data:', user);
-      console.log('isAdmin value:', user.isAdmin);
-    }
-  }, [user]);
+    // Bekleyen ilanlar
+    const fetchPendingProperties = async () => {
+      try {
+        const data = await propertyService.getPendingProperties();
+        setPendingPropertiesCount(data?.properties?.length || 0);
+      } catch (e) {
+        setPendingPropertiesCount(0);
+      }
+    };
+
+    // Bekleyen mesajlar (comments + contact)
+    const fetchPendingMessages = async () => {
+      try {
+        let unreadComments = 0;
+        let unreadContacts = 0;
+        // Comments
+        try {
+          const comments = await getAllCommentsWithProperty();
+          const arr = Array.isArray(comments) ? comments : (comments.comments || []);
+          unreadComments = arr.filter((c: any) => c.status !== 'read').length;
+        } catch {}
+        // Contacts
+        try {
+          const contacts = await getAllContactMessages();
+          unreadContacts = Array.isArray(contacts)
+            ? contacts.filter((m: any) => m.status !== 'read').length
+            : 0;
+        } catch {}
+        setPendingMessagesCount(unreadComments + unreadContacts);
+      } catch (e) {
+        setPendingMessagesCount(0);
+      }
+    };
+
+    fetchPendingProperties();
+    fetchPendingMessages();
+  }, []);
 
   if (!user) return null;
 
-  // Admin/danışman durumuna göre dashboard URL'sini belirle
   const dashboardUrl = user.isAdmin 
     ? '/admin/dashboard/admin' 
     : '/admin/dashboard/consultant';
@@ -57,7 +95,7 @@ export default function Sidebar() {
   const navItems: NavItem[] = [
     {
       label: 'Dashboard',
-      href: dashboardUrl, // Dinamik olarak belirlenen URL
+      href: dashboardUrl,
       icon: Home
     },
     {
@@ -73,7 +111,7 @@ export default function Sidebar() {
       adminOnly: true
     },
     {
-      label: 'Yorumlar',
+      label: 'İlan Mesajları',
       href: '/admin/dashboard/admin/comments',
       icon: MessageSquare,
       adminOnly: true
@@ -112,20 +150,19 @@ export default function Sidebar() {
       label: 'Ayarlar',
       href:  '/admin/dashboard/admin/settings' ,
       icon: Settings,
-         adminOnly: true
+      adminOnly: true
     }
   ];
-const getImageUrl = (imagePath: string) => {
-  if (!imagePath.startsWith('http')) {
-    return `https://api.villasantalya.com${imagePath}`;
-  }
-  return imagePath;
-}
-  // Kullanıcı rolüne göre filtreleme
+
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath.startsWith('http')) {
+      return `https://api.villasantalya.com${imagePath}`;
+    }
+    return imagePath;
+  };
+
   const filteredNavItems = navItems.filter(item => {
-    // Sadece admin için öğeler
     if (item.adminOnly && !user.isAdmin) return false;
-    // Sadece danışman için öğeler
     if (item.consultantOnly && user.isAdmin) return false;
     return true;
   });
@@ -133,10 +170,16 @@ const getImageUrl = (imagePath: string) => {
   const handleNavItemClick = (href: string, e: React.MouseEvent) => {
     if (href === dashboardUrl) {
       e.preventDefault();
-      console.log('Dashboard clicked, redirecting to:', dashboardUrl);
       router.push(dashboardUrl);
     }
   };
+
+  // Badge bileşeni
+  const Badge = ({ count }: { count: number }) => (
+    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-orange-500 text-white min-w-[20px] h-5">
+      {count}
+    </span>
+  );
 
   return (
     <>
@@ -168,15 +211,11 @@ const getImageUrl = (imagePath: string) => {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
-                  {/* <span className="text-sm font-semibold text-white">
-                    {user.name?.charAt(0).toUpperCase() || 'U'}
-                  </span> */}
-                 <img
-                        src={getImageUrl(user.image) || '/default-avatar.png'}
-                        alt={`Kullanıcı Avatarı ${user.name || 'Kullanıcı'}`}
-                        style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-                      />
-
+                  <img
+                    src={getImageUrl(user.image) || '/default-avatar.png'}
+                    alt={`Kullanıcı Avatarı ${user.name || 'Kullanıcı'}`}
+                    style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">{user.name || 'Kullanıcı'}</p>
@@ -192,11 +231,19 @@ const getImageUrl = (imagePath: string) => {
           <nav className="flex-1 px-4 py-4 space-y-2">
             {filteredNavItems.map((item, index) => {
               const Icon = item.icon;
-              // pathname değil href ile kontrol ediyoruz
               const isActive = pathname === item.href || 
                 (pathname.startsWith('/admin/dashboard/admin') && item.href === dashboardUrl && user.isAdmin) ||
                 (pathname.startsWith('/admin/dashboard/consultant') && item.href === dashboardUrl && !user.isAdmin);
-              
+
+              // Badge ekleme
+              let badge = null;
+              if (item.label === 'İlan Mesajları') {
+                badge = <Badge count={pendingMessagesCount} />;
+              }
+              if (item.label === 'Onay Bekleyen İlanlar') {
+              badge = <Badge count={pendingPropertiesCount} />;
+              }
+
               return (
                 <Link
                   key={`${item.href}-${index}`}
@@ -211,23 +258,16 @@ const getImageUrl = (imagePath: string) => {
                   )}
                 >
                   <Icon className={cn("h-5 w-5", isActive && "text-blue-700")} />
-                  {!isCollapsed && <span>{item.label}</span>}
+                  {!isCollapsed && (
+                    <>
+                      <span>{item.label}</span>
+                      {badge}
+                    </>
+                  )}
                 </Link>
               );
             })}
           </nav>
-
-          {/* Debug info - Development modunda göster */}
-          {!isCollapsed && process.env.NODE_ENV === 'development' && (
-            <div className="px-4 py-2 border-t border-gray-200 text-xs text-gray-500">
-              <details>
-                <summary className="cursor-pointer">Debug Info</summary>
-                <div className="mt-2 p-2 bg-gray-50 rounded overflow-auto max-h-40">
-                  <pre>{JSON.stringify({ isAdmin: user.isAdmin, pathname }, null, 2)}</pre>
-                </div>
-              </details>
-            </div>
-          )}
 
           {/* Logout */}
           <div className="p-4 border-t border-gray-200">

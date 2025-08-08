@@ -48,7 +48,20 @@ exports.getAllCommentsWithProperty = async (req, res) => {
     res.status(500).json({ message: "Yorumlar getirilemedi", error: err.message });
   }
 };
-
+exports.markCommentAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const comment = await Comment.findByIdAndUpdate(
+      id,
+      { status: "read" },
+      { new: true }
+    );
+    if (!comment) return res.status(404).json({ message: "Yorum bulunamadı" });
+    res.json({ message: "Yorum okundu olarak güncellendi", comment });
+  } catch (err) {
+    res.status(500).json({ message: "Yorum güncellenemedi", error: err.message });
+  }
+};
 // TÜM YORUMLARI SİL (SADECE TEST/ADMİN AMAÇLI KULLAN!)
 exports.deleteAllComments = async (req, res) => {
   try {

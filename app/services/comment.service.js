@@ -30,3 +30,19 @@ export async function getAllCommentsWithProperty() {
   });
   return await res.json();
 }
+
+export async function markCommentAsRead(commentId) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_URL}/comments/${commentId}/read`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Yorum durumu güncellenemedi");
+  }
+  return await res.json();
+}

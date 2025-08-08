@@ -65,14 +65,15 @@ export interface Pagination {
 
 // Danışman listesi yanıt tipi
 export interface ConsultantsResponse {
+  consultants: any;
   agents: Consultant[];
   pagination: Pagination;
 }
 
 // Tüm danışmanları getir
-export async function getAllConsultants(page = 1, limit = 10, sort = 'name') {
+export async function getAllConsultants(page = 1, limit = 10, sort = 'name',isActive?: boolean) {
   try {
-    const response = await api.get(`/agents?page=${page}&limit=${limit}&sort=${sort}`);
+    const response = await api.get(`/agents?page=${page}&limit=${limit}&sort=${sort}` + (isActive ? `&isActive=${isActive}` : ''));
     return response.data as ConsultantsResponse;
   } catch (error: any) {
     console.error('Error fetching consultants:', error);
