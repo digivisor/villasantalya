@@ -164,7 +164,7 @@ export default function MapSection() {
                 </div>
               ))}
             </div>
-            <div className="relative mt-6 lg:mt-0">
+            <div className="mapse relative mt-6 lg:mt-0">
               {error ? (
                 <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
                   <p className="text-red-600 text-center">{error}</p>
