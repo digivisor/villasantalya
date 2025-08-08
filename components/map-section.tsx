@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation"
 import GoogleMap from "./google-map"
 import propertyService from "../app/services/property.service"
 import styles from "../styles/map-section.module.css"
-import { ar } from "date-fns/locale"
-
-
 
 interface MapProperty {
   id: string
@@ -22,52 +19,33 @@ interface MapProperty {
   slug?: string
   mainImage?: string 
   price?: string | number
-
 }
 
 export default function MapSection() {
   const router = useRouter()
-  const [displayProperties, setDisplayProperties] = useState<MapProperty[]>([])
   const [allMapProperties, setAllMapProperties] = useState<MapProperty[]>([])
+  const [activeSlide, setActiveSlide] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-
-
-// MapSection içinde
-const googleMapProperties = allMapProperties.map(p => ({
-  _id: p.id,
-  title: p.name,
-  address: p.address,
-  district: "", // veya gerektiği gibi doldur
-  city: "",     // veya gerektiği gibi doldur
-  location: { lat: p.lat, lng: p.lng },
-  image: p.image,           
-  mainImage: p.mainImage,   
-  price: p.price,  
-  area: p.area, // Yeni alanı ekle
-  beds: p.beds, // Yeni alanı ekle
-  baths: p.baths, // Yeni alanı ekle
-  slug: p.slug // Slug'u da ekle
-}));
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setLoading(true)
-        const response = await propertyService.getAllProperties({ limit: 20, hasLocation: true })
+        const response = await propertyService.getAllProperties({ limit: 100, hasLocation: true })
         if (response?.properties && Array.isArray(response.properties)) {
-          // YALNIZCA status === "active" ve isApproved === true olanlar
+          // YALNIZCA status === "active" ve isApproved === true ve featured === true olanlar
           const filtered = response.properties.filter(
-            (p: { status: string; isApproved: string | boolean; location: { coordinates: string | any[]; lat: any; lng: any } }) => 
-              p.status === "active" && 
-              (p.isApproved === true || p.isApproved === "true") && 
-              p.location && 
+            (p: { status: string; isApproved: string | boolean; featured: boolean | string; location: { coordinates: string | any[]; lat: any; lng: any } }) =>
+              p.status === "active" &&
+              (p.isApproved === true || p.isApproved === "true") &&
+              (p.featured === true || p.featured === "true") &&
+              p.location &&
               ((p.location.coordinates?.length === 2) || (p.location.lat && p.location.lng))
           )
           const mapped = filtered.map((p: {
             price: any, location: { coordinates: any; lat: any; lng: any }; _id: any; title: any; address: any; district: any; city: any; area: any; bedrooms: any; beds: any; bathrooms: any; baths: any; mainImage: string | undefined; slug: any 
-}) => {
+          }) => {
             const coords = p.location.coordinates
             const lat = coords?.[1] ?? Number(p.location.lat)
             const lng = coords?.[0] ?? Number(p.location.lng)
@@ -86,17 +64,14 @@ const googleMapProperties = allMapProperties.map(p => ({
             }
           })
           setAllMapProperties(mapped)
-          setDisplayProperties(mapped.slice(0, 4))
         } else {
           setAllMapProperties([])
-          setDisplayProperties([])
         }
         setError(null)
       } catch (err: any) {
         console.error('Emlak verileri çekilirken hata:', err)
         setError(err.message || 'Veriler yüklenirken bir hata oluştu')
         setAllMapProperties([])
-        setDisplayProperties([])
       } finally {
         setLoading(false)
       }
@@ -130,8 +105,29 @@ const googleMapProperties = allMapProperties.map(p => ({
     },
   ]
 
-  const propertiesToShow = displayProperties.length ? displayProperties : defaultProperties
-  const mapProperties = allMapProperties.length ? allMapProperties : defaultProperties
+  // SLIDER LOGIC
+  const slideSize = 4
+  const totalSlides = Math.ceil((allMapProperties.length || 1) / slideSize)
+  const activeProperties =
+    allMapProperties.length > 0
+      ? allMapProperties.slice(activeSlide * slideSize, activeSlide * slideSize + slideSize)
+      : defaultProperties
+
+  const googleMapProperties = allMapProperties.map(p => ({
+    _id: p.id,
+    title: p.name,
+    address: p.address,
+    district: "", // veya gerektiği gibi doldur
+    city: "",     // veya gerektiği gibi doldur
+    location: { lat: p.lat, lng: p.lng },
+    image: p.image,           
+    mainImage: p.mainImage,   
+    price: p.price,  
+    area: p.area,
+    beds: p.beds,
+    baths: p.baths,
+    slug: p.slug
+  }));
 
   return (
     <section className="py-10 px-2 sm:px-4 bg-gray-50">
@@ -151,7 +147,7 @@ const googleMapProperties = allMapProperties.map(p => ({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-start">
             <div className="space-y-5">
-              {propertiesToShow.map(property => (
+              {activeProperties.map(property => (
                 <div
                   key={property.id}
                   onClick={() => handlePropertyClick(property)}
@@ -191,6 +187,21 @@ const googleMapProperties = allMapProperties.map(p => ({
                   </div>
                 </div>
               ))}
+              {/* DOTSLAR */}
+              {allMapProperties.length > slideSize && (
+                <div className="flex justify-center mt-4 space-x-2">
+                  {Array.from({ length: totalSlides }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      className={`w-3 h-3 rounded-full border border-orange-400 
+                        ${activeSlide === idx ? "bg-orange-500" : "bg-white"}
+                        transition-colors`}
+                      onClick={() => setActiveSlide(idx)}
+                      aria-label={`İlan grubunu göster ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div className={`${styles.mapse} relative mt-5 lg:mt-10`}>
               {error ? (
@@ -199,10 +210,8 @@ const googleMapProperties = allMapProperties.map(p => ({
                 </div>
               ) : (
                 <div className="  lg:w-[700px] h-[700px] sm:h-[200px] md:h-[200px] lg:h-[600px] "
-                
-                style={{ position: 'relative', width: '100%', height: '100%' ,  }}>
-                
-                <GoogleMap properties={googleMapProperties} />
+                  style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <GoogleMap />
                 </div>
               )}
             </div>
@@ -212,5 +221,3 @@ const googleMapProperties = allMapProperties.map(p => ({
     </section>
   )
 }
-
-

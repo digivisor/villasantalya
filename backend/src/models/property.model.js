@@ -84,6 +84,10 @@ const propertySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+    featured: {
+    type: Boolean,
+    default: false
+  },
   balcony: {
     type: Boolean,
     default: false

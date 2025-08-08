@@ -13,7 +13,7 @@ export interface PropertyFormData {
   discountedPrice?: string ; 
   propertyType: string;
   category: string;
-
+  fetured?: boolean; 
   type: 'sale' | 'rent';
   bedrooms: string;  
   bathrooms: string | number; 

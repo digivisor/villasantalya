@@ -71,6 +71,8 @@ interface Property {
   elevator?: boolean;
   security?: boolean;
   garden?: boolean;
+    featured?: boolean; 
+
 }
 
 export default function AdminPropertiesPage() {
@@ -147,7 +149,37 @@ export default function AdminPropertiesPage() {
       setIsLoading(false);
     }
   };
-  
+  const handleToggleFeatured = async (property: Property) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showToast('Oturum bilginiz bulunamadı. Lütfen tekrar giriş yapın.', 'error');
+      return;
+    }
+    const updatedData = { featured: !property.featured };
+    await api.put(`/properties/${property._id}`, updatedData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'x-auth-token': token
+      }
+    });
+    setProperties(props => props.map(p =>
+      p._id === property._id
+        ? { ...p, featured: !property.featured }
+        : p
+    ));
+    showToast(
+      !property.featured
+        ? 'İlan öne çıkarıldı.'
+        : 'İlan öne çıkarma kaldırıldı.',
+      'success'
+    );
+  } catch (error) {
+    console.error('Featured güncellerken hata:', error);
+    showToast('İlan öne çıkarılırken bir hata oluştu.', 'error');
+  }
+};
+
   // Filtreleme işlemleri
   const filteredProperties = properties.filter(property => {
     const matchesSearch = 
@@ -554,17 +586,29 @@ export default function AdminPropertiesPage() {
                   <div className="text-xs text-gray-500">
                     {property.propertyType} • {property.area} m²
                   </div>
+                  {property.featured && (
+      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+        ⭐ Öne Çıkarıldı
+      </span>
+    )}
                   
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">
-                      {property.status === 'active' ? 'Aktif' : 'Pasif'}
-                    </span>
-                    <Toggle
-                      checked={property.status === 'active'}
-                      onChange={() => handleToggleStatus(property)}
-                      size="sm"
-                    />
-                  </div>
+                 <div className="flex items-center space-x-2">
+    <span className="text-xs text-gray-500">
+      {property.status === 'active' ? 'Aktif' : 'Pasif'}
+    </span>
+    <Toggle
+      checked={property.status === 'active'}
+      onChange={() => handleToggleStatus(property)}
+      size="sm"
+    />
+    <span className="text-xs text-gray-500">İlanı Öne Çıkar</span>
+    <Toggle
+      checked={!!property.featured}
+      onChange={() => handleToggleFeatured(property)}
+      size="sm"
+      aria-label="İlanı öne çıkar"
+    />
+  </div>
                 </div>
               </div>
             </div>

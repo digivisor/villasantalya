@@ -442,6 +442,9 @@
       if (req.body.elevator !== undefined) updatedData.elevator = req.body.elevator === 'true' || req.body.elevator === true;
       if (req.body.security !== undefined) updatedData.security = req.body.security === 'true' || req.body.security === true;
       if (req.body.garden !== undefined) updatedData.garden = req.body.garden === 'true' || req.body.garden === true;
+      if (req.body.featured !== undefined) updatedData.featured = req.body.featured === 'true' || req.body.featured === true;
+
+      
       
       const updatedProperty = await Property.findByIdAndUpdate(
         req.params.id,
