@@ -15,7 +15,7 @@ const mapContainerStyle = {
   height: '100%',
 };
 
-const Map: React.FC<MapProps> = ({ lat, lng, zoom = 14, markerTitle = 'İlan Konumu' }) => {
+const Map: React.FC<MapProps> = ({ lat, lng, zoom = 12, markerTitle = 'İlan Konumu' }) => {
   const [showInfoWindow, setShowInfoWindow] = React.useState(false);
 
   const center = {
