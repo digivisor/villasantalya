@@ -143,7 +143,7 @@ export default function LoginPage() {
                 <strong>Admin:</strong> admin / admin123
               </div>
               <div>
-                <strong>Danışman:</strong> fazilcanakbas / admin123
+                <strong>Danışman:</strong> danisman / admin123
               </div>
             </div>
           </div>
