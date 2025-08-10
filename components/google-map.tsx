@@ -130,7 +130,7 @@ export default function GoogleMap() {
       const firstLocation = properties[0]?.location;
       if (!firstLocation) return;
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 11,
+        zoom: 10,
         center: { lat: firstLocation.lat, lng: firstLocation.lng },
         mapTypeControl: false,
         streetViewControl: false,
