@@ -1,0 +1,15 @@
+.googleMapResponsive {
+  height: 700px;
+}
+@media (min-width: 640px) {
+  .googleMapResponsive { height: 400px; }
+}
+@media (min-width: 768px) {
+  .googleMapResponsive { height: 500px; }
+}
+@media (min-width: 1024px) {
+  .googleMapResponsive { height: 700px; }
+}
+@media (min-width: 1280px) {
+  .googleMapResponsive { height: 700px; }
+}

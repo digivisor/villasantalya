@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import propertyService from "../app/services/property.service";
 import { useRouter } from "next/navigation";
+import styles from "../styles/google-map.module.css";
 
 interface MapProperty {
   _id: string;
@@ -36,18 +37,39 @@ const MAP_STYLE = [
   { featureType: "water", elementType: "labels.text", stylers: [{ color: "#b3b8d7" }] },
 ];
 
-function useGoogleMapsScript() {
+// HOOK: Script yüklenmesini state olarak döndürür
+function useGoogleMapsScript(): boolean {
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
-    if (typeof window === "undefined" || (window as any).google?.maps) return;
+    if (typeof window === "undefined") return;
+    if ((window as any).google?.maps) {
+      setLoaded(true);
+      return;
+    }
     if (!GOOGLE_MAPS_API_KEY) return;
-    if (document.querySelector('script[data-google-maps="true"]')) return;
+    if (document.querySelector('script[data-google-maps="true"]')) {
+      // Script ekli, ama yüklendi mi?
+      const checkLoaded = () => {
+        if ((window as any).google?.maps) setLoaded(true);
+      };
+      window.addEventListener("google-maps-callback", checkLoaded);
+      return () => window.removeEventListener("google-maps-callback", checkLoaded);
+    }
+    // Callback ile yükle
+    (window as any).googleMapsCallback = () => {
+      setLoaded(true);
+      window.dispatchEvent(new Event("google-maps-callback"));
+    };
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=googleMapsCallback`;
     script.async = true;
     script.defer = true;
     script.setAttribute("data-google-maps", "true");
     document.head.appendChild(script);
   }, []);
+
+  return loaded;
 }
 
 function getCurrencySymbol(curr?: string) {
@@ -72,7 +94,9 @@ export default function GoogleMap() {
   const fitBoundsOnce = useRef(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  useGoogleMapsScript();
+
+  // HOOKTAN GELEN YÜKLENME DURUMU
+  const scriptLoaded = useGoogleMapsScript();
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -122,6 +146,8 @@ export default function GoogleMap() {
   }, []);
 
   useEffect(() => {
+    // <-- Yalnızca script yüklü ise harita başlat!
+    if (!scriptLoaded) return;
     if (!GOOGLE_MAPS_API_KEY || !properties.length) return;
     if (!(window as any).google?.maps) return;
     if (!mapRef.current) return;
@@ -130,7 +156,7 @@ export default function GoogleMap() {
       const firstLocation = properties[0]?.location;
       if (!firstLocation) return;
       mapInstance.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 11,
+        zoom: 7,
         center: { lat: firstLocation.lat, lng: firstLocation.lng },
         mapTypeControl: false,
         streetViewControl: false,
@@ -249,7 +275,7 @@ export default function GoogleMap() {
     });
 
     if (properties.length > 1 && !fitBoundsOnce.current) {
-      mapInstance.current.fitBounds(bounds);
+      mapInstance.current.fitBounds(bounds, { top: 150, bottom: 150, left: 170, right: 170 });
       fitBoundsOnce.current = true;
     }
 
@@ -257,9 +283,9 @@ export default function GoogleMap() {
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
     };
-  }, [properties, GOOGLE_MAPS_API_KEY]);
+  }, [properties, GOOGLE_MAPS_API_KEY, scriptLoaded]); // <-- scriptLoaded dependency
 
   return (
-    <div ref={mapRef} className="h-full" style={{ minHeight: "700px", minWidth: "700px" }} />
+    <div ref={mapRef} className={`${styles.googleMapResponsive} rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-100`} />
   );
 }

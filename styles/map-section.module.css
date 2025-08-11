@@ -1,13 +1,44 @@
-.mapse:after{
+.mapse:after {
     content: "";
     position: absolute;
     background: radial-gradient(at center center, transparent 50%, #f9fafb 70%);
-    background-size: 700px 700px;
+    background-size: 350px 350px;
     z-index: 1;
     pointer-events: none;
     top: -0.0005px;
+    width: 350px;
+    height: 350px;
+}
 
-    width: 700px;
-    height: 700px;
-   
+/* SM breakpoint (min-width: 640px) */
+@media (min-width: 640px) {
+    .mapse:after {
+        background-size: 400px 400px;
+        width: 100px;
+        height: 400px;
+    }
+}
+/* MD breakpoint (min-width: 768px) */
+@media (min-width: 768px) {
+    .mapse:after {
+        background-size: 500px 500px;
+        width: 500px;
+        height: 500px;
+    }
+}
+/* LG breakpoint (min-width: 1024px) */
+@media (min-width: 1024px) {
+    .mapse:after {
+        background-size: 600px 600px;
+        width: 700px;
+        height: 700px;
+    }
+}
+/* XL breakpoint (min-width: 1280px) */
+@media (min-width: 1280px) {
+    .mapse:after {
+        background-size: 700px 700px;
+        width: 700px;
+        height: 700px;
+    }
 }

@@ -134,19 +134,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Demo Hesaplar:</p>
-            <div className="space-y-2 text-sm text-gray-600">
-              <div>
-                <strong>Admin:</strong> admin / admin123
-              </div>
-              <div>
-                <strong>Danışman:</strong> fazilcanakbas / admin123
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

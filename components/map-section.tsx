@@ -210,13 +210,13 @@ export default function MapSection() {
                 </div>
               ) : (
                 <div className="  lg:w-[700px] h-[700px] sm:h-[200px] md:h-[200px] lg:h-[600px] "
-                  style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  style={{ position: 'relative',}}>
                   <GoogleMap />
                 </div>
               )}
             </div>
           </div>
-        )}
+        )} 
       </div>
     </section>
   )
