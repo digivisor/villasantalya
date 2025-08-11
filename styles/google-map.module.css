@@ -1,5 +1,6 @@
 .googleMapResponsive {
   height: 700px;
+  width: 700px;
 }
 @media (min-width: 640px) {
   .googleMapResponsive { height: 400px; }
