@@ -283,7 +283,7 @@ export default function GoogleMap() {
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
     };
-  }, [properties, GOOGLE_MAPS_API_KEY, scriptLoaded]); 
+  }, [properties, GOOGLE_MAPS_API_KEY, scriptLoaded]); // <-- scriptLoaded dependency
 
   return (
     <div ref={mapRef} className={`${styles.googleMapResponsive} rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-100`} />
