@@ -145,8 +145,8 @@ export default function MapSection() {
             <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 animate-spin text-orange-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-start">
-            <div className="space-y-5">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12  min-h-[800px]">
+  <div className="space-y-5 h-full flex flex-col">
               {activeProperties.map(property => (
                 <div
                   key={property.id}
@@ -203,7 +203,7 @@ export default function MapSection() {
                 </div>
               )}
             </div>
-            <div className={`${styles.mapse} relative mt-5 lg:mt-10`}>
+  <div className={`${styles.mapse} relative mt-5 lg:mt-10 h-full flex items-stretch`}>
               {error ? (
                 <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-[800px] sm:h-[800px] md:h-[800px] lg:h-[800px] flex items-center justify-center">
                   <p className="text-red-600 text-center">{error}</p>
